@@ -441,40 +441,51 @@ renderRpts(rptData);
 function qs(q) { document.getElementById('stockInput').value=q; analyseStock(); }
 document.getElementById('stockInput').addEventListener('keydown',e=>{ if(e.key==='Enter') analyseStock(); });
 
-/* Fetch live stock data from Yahoo Finance via public proxy */
+/* Fetch live stock data using multiple free APIs */
 async function fetchLiveData(query) {
-  // Auto-append .NS for Indian stocks if no exchange suffix
   let ticker = query.trim().toUpperCase();
-  if (!ticker.includes('.') && !['NVDA','AAPL','MSFT','GOOGL','AMZN','META','TSLA'].includes(ticker)) {
+  // Auto-add .NS for Indian stocks
+  if (!ticker.includes('.') && !['NVDA','AAPL','MSFT','GOOGL','AMZN','META','TSLA','NFLX','AMD','INTC'].includes(ticker)) {
     ticker = ticker + '.NS';
   }
+
+  // Try finnhub free API (no CORS issues)
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
-    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
-    const parsed = JSON.parse(data.contents);
-    const q = parsed?.chart?.result?.[0];
-    if (!q) return null;
-    const meta = q.meta;
-    return {
-      ticker: meta.symbol,
-      company: meta.longName || meta.shortName || ticker,
-      price: meta.regularMarketPrice?.toFixed(2),
-      prevClose: meta.chartPreviousClose?.toFixed(2),
-      change: ((meta.regularMarketPrice - meta.chartPreviousClose) / meta.chartPreviousClose * 100).toFixed(2),
-      currency: meta.currency,
-      exchange: meta.exchangeName,
-      marketCap: meta.marketCap,
-      pe: meta.trailingPE?.toFixed(1),
-      eps: meta.epsTrailingTwelveMonths?.toFixed(2),
-      week52High: meta.fiftyTwoWeekHigh?.toFixed(2),
-      week52Low: meta.fiftyTwoWeekLow?.toFixed(2),
-    };
-  } catch(e) { return null; }
+    const FKEY = 'cvo0339r01qhup3b5mr0cvo0339r01qhup3b5mrg';
+    const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${FKEY}`);
+    const quote = await quoteRes.json();
+
+    const profileRes = await fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${ticker}&token=${FKEY}`);
+    const profile = await profileRes.json();
+
+    if (quote && quote.c && quote.c > 0) {
+      const sym = profile.currency === 'INR' ? '₹' : (profile.currency === 'USD' ? '$' : '');
+      const change = ((quote.c - quote.pc) / quote.pc * 100).toFixed(2);
+      return {
+        ticker: ticker,
+        company: profile.name || ticker,
+        price: quote.c?.toFixed(2),
+        prevClose: quote.pc?.toFixed(2),
+        high: quote.h?.toFixed(2),
+        low: quote.l?.toFixed(2),
+        open: quote.o?.toFixed(2),
+        change: change,
+        week52High: quote['52WeekHigh']?.toFixed(2) || '—',
+        week52Low: quote['52WeekLow']?.toFixed(2) || '—',
+        marketCap: profile.marketCapitalization ? (profile.marketCapitalization * 1e6) : null,
+        pe: profile.peNormalizedAnnual?.toFixed(1) || null,
+        currency: profile.currency || 'INR',
+        exchange: profile.exchange || '',
+        sym: sym
+      };
+    }
+  } catch(e) {}
+
+  return null;
 }
 
-function formatMarketCap(mc, currency) {
-  if (!mc) return 'N/A';
+function fmtCap(mc, currency) {
+  if (!mc) return null;
   const sym = currency === 'INR' ? '₹' : '$';
   if (currency === 'INR') {
     if (mc >= 1e12) return sym + (mc/1e12).toFixed(1) + ' L Cr';
@@ -500,26 +511,26 @@ async function analyseStock() {
   rc.classList.remove('show');
   rs.scrollIntoView({behavior:'smooth',block:'start'});
 
-  // Step 1: Fetch live data from Yahoo Finance
+  // Step 1: Fetch live data
   btn.textContent = 'Fetching live data...';
   const live = await fetchLiveData(query);
-  const sym = live?.currency === 'INR' ? '₹' : '$';
+  const sym = live?.sym || (live?.currency === 'INR' ? '₹' : '$');
+  const capStr = fmtCap(live?.marketCap, live?.currency) || 'N/A';
 
-  // Build live data context for AI
+  // Build live data context for Gemini
   const liveContext = live ? `
-LIVE MARKET DATA (use these exact numbers):
+LIVE MARKET DATA (today's real numbers — use these exactly):
 - Company: ${live.company}
 - Ticker: ${live.ticker}
 - Current Price: ${sym}${live.price}
 - Previous Close: ${sym}${live.prevClose}
-- Today's Change: ${live.change}%
-- Market Cap: ${formatMarketCap(live.marketCap, live.currency)}
-- P/E Ratio (trailing): ${live.pe || 'N/A'}
-- EPS: ${sym}${live.eps || 'N/A'}
-- 52-Week High: ${sym}${live.week52High}
-- 52-Week Low: ${sym}${live.week52Low}
+- Today's Change: ${live.change >= 0 ? '+' : ''}${live.change}%
+- Today's High: ${sym}${live.high}
+- Today's Low: ${sym}${live.low}
+- Market Cap: ${capStr}
+- P/E Ratio: ${live.pe || 'N/A'}
 - Exchange: ${live.exchange}
-` : `No live data available. Use your knowledge for: "${query}"`;
+` : `No live price data found. Use your best knowledge for: "${query}"`;
 
   btn.textContent = 'Running AI analysis...';
 
@@ -535,27 +546,26 @@ Respond ONLY with valid JSON (no markdown, no extra text):
   "sector": "Sector name",
   "dcf_value": "Estimated DCF fair value with ${sym} symbol",
   "upside": "Upside or downside % vs current price ${sym}${live?.price || ''}",
-  "pe_ratio": "${live?.pe || 'Estimated'}x",
+  "pe_ratio": "${live?.pe ? live.pe + 'x' : 'Estimated'}",
   "wacc": "Estimated WACC %",
   "verdict": "BUY or HOLD or SELL",
   "current_price": "${sym}${live?.price || 'N/A'}",
-  "change_today": "${live?.change || '0'}%",
-  "week52": "${sym}${live?.week52Low || ''} – ${sym}${live?.week52High || ''}",
-  "market_cap": "${formatMarketCap(live?.marketCap, live?.currency) || 'N/A'}",
+  "change_today": "${live ? (live.change >= 0 ? '+' : '') + live.change + '%' : 'N/A'}",
+  "market_cap": "${capStr}",
   "overview": "2 sentence company description.",
   "financials": [
-    "Live Price: ${sym}${live?.price || 'N/A'} (${live?.change >= 0 ? '+' : ''}${live?.change || 0}% today)",
-    "Market Cap: ${formatMarketCap(live?.marketCap, live?.currency) || 'N/A'}",
-    "P/E Ratio: ${live?.pe || 'N/A'}x",
-    "52-Week Range: ${sym}${live?.week52Low || 'N/A'} – ${sym}${live?.week52High || 'N/A'}",
-    "EPS: ${sym}${live?.eps || 'N/A'}",
-    "Estimated Revenue Growth: X%",
-    "Estimated Net Margin: X%",
-    "Estimated ROCE: X%"
+    "Live Price: ${sym}${live?.price || 'N/A'} (${live ? (live.change >= 0 ? '+' : '') + live.change + '%' : ''} today)",
+    "Today High/Low: ${sym}${live?.high || 'N/A'} / ${sym}${live?.low || 'N/A'}",
+    "Market Cap: ${capStr}",
+    "P/E Ratio: ${live?.pe ? live.pe + 'x' : 'N/A'}",
+    "Estimated Revenue Growth: provide a value",
+    "Estimated Net Margin: provide a value",
+    "Estimated ROCE: provide a value",
+    "Estimated Debt/Equity: provide a value"
   ],
-  "strengths": ["Strength 1 based on data", "Strength 2", "Strength 3"],
+  "strengths": ["Strength 1", "Strength 2", "Strength 3"],
   "risks": ["Risk 1", "Risk 2", "Risk 3"],
-  "verdict_text": "One clear sentence explaining BUY/HOLD/SELL with reference to current price ${sym}${live?.price || ''} and fair value."
+  "verdict_text": "One clear sentence explaining verdict referencing the current price ${sym}${live?.price || ''} and estimated fair value."
 }`;
 
   try {
@@ -572,7 +582,8 @@ Respond ONLY with valid JSON (no markdown, no extra text):
     if (live) {
       parsed.current_price = `${sym}${live.price}`;
       parsed.pe_ratio = live.pe ? `${live.pe}x` : parsed.pe_ratio;
-      parsed.market_cap = formatMarketCap(live.marketCap, live.currency);
+      parsed.market_cap = capStr;
+      parsed.change_today = (live.change >= 0 ? '+' : '') + live.change + '%';
     }
     fillResult(parsed);
   } catch(e) {
