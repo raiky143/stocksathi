@@ -262,10 +262,10 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
       <div id="rVerdict" class="verdict-pill vp-buy">▲ BUY</div>
     </div>
     <div class="metrics">
-      <div class="metric"><div class="mv nt" id="m1">—</div><div class="ml">DCF Fair Value</div></div>
-      <div class="metric"><div class="mv" id="m2">—</div><div class="ml">Upside / Downside</div></div>
+      <div class="metric"><div class="mv nt" id="m1">—</div><div class="ml">Live Price</div></div>
+      <div class="metric"><div class="mv" id="m2">—</div><div class="ml">Today's Change</div></div>
       <div class="metric"><div class="mv" id="m3">—</div><div class="ml">P/E Ratio</div></div>
-      <div class="metric"><div class="mv" id="m4">—</div><div class="ml">WACC</div></div>
+      <div class="metric"><div class="mv" id="m4">—</div><div class="ml">Market Cap</div></div>
     </div>
     <div class="res-body">
       <div class="rsec" id="sOverview" style="display:none;"><div class="rsec-title">Company Overview</div><p id="tOverview"></p></div>
@@ -441,6 +441,51 @@ renderRpts(rptData);
 function qs(q) { document.getElementById('stockInput').value=q; analyseStock(); }
 document.getElementById('stockInput').addEventListener('keydown',e=>{ if(e.key==='Enter') analyseStock(); });
 
+/* Fetch live stock data from Yahoo Finance via public proxy */
+async function fetchLiveData(query) {
+  // Auto-append .NS for Indian stocks if no exchange suffix
+  let ticker = query.trim().toUpperCase();
+  if (!ticker.includes('.') && !['NVDA','AAPL','MSFT','GOOGL','AMZN','META','TSLA'].includes(ticker)) {
+    ticker = ticker + '.NS';
+  }
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
+    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+    const parsed = JSON.parse(data.contents);
+    const q = parsed?.chart?.result?.[0];
+    if (!q) return null;
+    const meta = q.meta;
+    return {
+      ticker: meta.symbol,
+      company: meta.longName || meta.shortName || ticker,
+      price: meta.regularMarketPrice?.toFixed(2),
+      prevClose: meta.chartPreviousClose?.toFixed(2),
+      change: ((meta.regularMarketPrice - meta.chartPreviousClose) / meta.chartPreviousClose * 100).toFixed(2),
+      currency: meta.currency,
+      exchange: meta.exchangeName,
+      marketCap: meta.marketCap,
+      pe: meta.trailingPE?.toFixed(1),
+      eps: meta.epsTrailingTwelveMonths?.toFixed(2),
+      week52High: meta.fiftyTwoWeekHigh?.toFixed(2),
+      week52Low: meta.fiftyTwoWeekLow?.toFixed(2),
+    };
+  } catch(e) { return null; }
+}
+
+function formatMarketCap(mc, currency) {
+  if (!mc) return 'N/A';
+  const sym = currency === 'INR' ? '₹' : '$';
+  if (currency === 'INR') {
+    if (mc >= 1e12) return sym + (mc/1e12).toFixed(1) + ' L Cr';
+    if (mc >= 1e9)  return sym + (mc/1e9).toFixed(0) + ',000 Cr';
+    return sym + (mc/1e7).toFixed(0) + ' Cr';
+  }
+  if (mc >= 1e12) return sym + (mc/1e12).toFixed(2) + 'T';
+  if (mc >= 1e9)  return sym + (mc/1e9).toFixed(1) + 'B';
+  return sym + (mc/1e6).toFixed(0) + 'M';
+}
+
 async function analyseStock() {
   const query = document.getElementById('stockInput').value.trim();
   if (!query) return;
@@ -449,29 +494,90 @@ async function analyseStock() {
   const sk = document.getElementById('skeleton');
   const rc = document.getElementById('resCard');
 
-  btn.disabled=true; btn.textContent='Analysing...';
+  btn.disabled=true; btn.textContent='Fetching live data...';
   rs.classList.add('show');
   sk.classList.add('show');
   rc.classList.remove('show');
   rs.scrollIntoView({behavior:'smooth',block:'start'});
 
-  const prompt = `You are StockSathi, a professional Indian stock analyst. Analyse: "${query}"
+  // Step 1: Fetch live data from Yahoo Finance
+  btn.textContent = 'Fetching live data...';
+  const live = await fetchLiveData(query);
+  const sym = live?.currency === 'INR' ? '₹' : '$';
+
+  // Build live data context for AI
+  const liveContext = live ? `
+LIVE MARKET DATA (use these exact numbers):
+- Company: ${live.company}
+- Ticker: ${live.ticker}
+- Current Price: ${sym}${live.price}
+- Previous Close: ${sym}${live.prevClose}
+- Today's Change: ${live.change}%
+- Market Cap: ${formatMarketCap(live.marketCap, live.currency)}
+- P/E Ratio (trailing): ${live.pe || 'N/A'}
+- EPS: ${sym}${live.eps || 'N/A'}
+- 52-Week High: ${sym}${live.week52High}
+- 52-Week Low: ${sym}${live.week52Low}
+- Exchange: ${live.exchange}
+` : `No live data available. Use your knowledge for: "${query}"`;
+
+  btn.textContent = 'Running AI analysis...';
+
+  const prompt = `You are StockSathi, a professional Indian stock analyst.
+
+${liveContext}
+
+Based on the live data above and your financial knowledge, provide a complete analysis.
 Respond ONLY with valid JSON (no markdown, no extra text):
-{"company":"Full name","ticker":"NSE ticker","sector":"Sector","dcf_value":"₹XXX","upside":"+X.X% or -X.X%","pe_ratio":"XX.Xx","wacc":"X.XX%","verdict":"BUY or HOLD or SELL","overview":"2 sentence description.","financials":["Revenue: ₹X,XXX Cr","Net Margin: X.X%","ROCE: XX%","Debt/Equity: X.Xx","Market Cap: ₹X,XX,XXX Cr"],"strengths":["Strength 1","Strength 2","Strength 3"],"risks":["Risk 1","Risk 2","Risk 3"],"verdict_text":"One clear sentence explaining verdict with key data."}`;
+{
+  "company": "${live?.company || query}",
+  "ticker": "${live?.ticker || query}",
+  "sector": "Sector name",
+  "dcf_value": "Estimated DCF fair value with ${sym} symbol",
+  "upside": "Upside or downside % vs current price ${sym}${live?.price || ''}",
+  "pe_ratio": "${live?.pe || 'Estimated'}x",
+  "wacc": "Estimated WACC %",
+  "verdict": "BUY or HOLD or SELL",
+  "current_price": "${sym}${live?.price || 'N/A'}",
+  "change_today": "${live?.change || '0'}%",
+  "week52": "${sym}${live?.week52Low || ''} – ${sym}${live?.week52High || ''}",
+  "market_cap": "${formatMarketCap(live?.marketCap, live?.currency) || 'N/A'}",
+  "overview": "2 sentence company description.",
+  "financials": [
+    "Live Price: ${sym}${live?.price || 'N/A'} (${live?.change >= 0 ? '+' : ''}${live?.change || 0}% today)",
+    "Market Cap: ${formatMarketCap(live?.marketCap, live?.currency) || 'N/A'}",
+    "P/E Ratio: ${live?.pe || 'N/A'}x",
+    "52-Week Range: ${sym}${live?.week52Low || 'N/A'} – ${sym}${live?.week52High || 'N/A'}",
+    "EPS: ${sym}${live?.eps || 'N/A'}",
+    "Estimated Revenue Growth: X%",
+    "Estimated Net Margin: X%",
+    "Estimated ROCE: X%"
+  ],
+  "strengths": ["Strength 1 based on data", "Strength 2", "Strength 3"],
+  "risks": ["Risk 1", "Risk 2", "Risk 3"],
+  "verdict_text": "One clear sentence explaining BUY/HOLD/SELL with reference to current price ${sym}${live?.price || ''} and fair value."
+}`;
 
   try {
     const KEY = 'AIzaSyB3AER5sVIAm28idPgCLNPt_CpybCrqhTw';
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${KEY}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:900,temperature:0.5}})
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1000,temperature:0.3}})
     });
     const data = await res.json();
     let raw = data?.candidates?.[0]?.content?.parts?.[0]?.text||'';
     raw = raw.replace(/```json|```/g,'').trim();
-    fillResult(JSON.parse(raw));
+    const parsed = JSON.parse(raw);
+    // Inject live data into metrics directly
+    if (live) {
+      parsed.current_price = `${sym}${live.price}`;
+      parsed.pe_ratio = live.pe ? `${live.pe}x` : parsed.pe_ratio;
+      parsed.market_cap = formatMarketCap(live.marketCap, live.currency);
+    }
+    fillResult(parsed);
   } catch(e) {
-    document.getElementById('rCompany').textContent='Analysis failed — please try again';
-    document.getElementById('rTicker').textContent='';
+    document.getElementById('rCompany').textContent = 'Analysis failed — please try again';
+    document.getElementById('rTicker').textContent = '';
     rc.classList.add('show');
   }
   sk.classList.remove('show');
@@ -485,12 +591,26 @@ function fillResult(d) {
   const vEl = document.getElementById('rVerdict');
   vEl.textContent = v==='BUY'?'▲ BUY':v==='SELL'?'▼ SELL':'◆ HOLD';
   vEl.className = 'verdict-pill '+(v==='BUY'?'vp-buy':v==='SELL'?'vp-sell':'vp-hold');
-  document.getElementById('m1').textContent = d.dcf_value||'—';
+
+  // Metric 1: Live Price
+  const m1 = document.getElementById('m1');
+  m1.textContent = d.current_price || d.dcf_value || '—';
+  document.querySelector('#m1 + .ml') && (document.querySelector('#m1').nextElementSibling.textContent = d.current_price ? 'Live Price' : 'DCF Fair Value');
+
+  // Metric 2: Today's change or upside
   const m2=document.getElementById('m2');
-  m2.textContent=d.upside||'—';
-  m2.className='mv '+((d.upside||'').startsWith('+')?' up':(d.upside||'').startsWith('-')?' dn':'');
-  document.getElementById('m3').textContent=d.pe_ratio||'—';
-  document.getElementById('m4').textContent=d.wacc||'—';
+  const changeVal = d.change_today || d.upside || '—';
+  m2.textContent = changeVal;
+  m2.className='mv '+((changeVal||'').startsWith('+') ? 'up' : (changeVal||'').startsWith('-') ? 'dn' : '');
+
+  // Metric 3: P/E
+  document.getElementById('m3').textContent = d.pe_ratio||'—';
+
+  // Metric 4: Market Cap or WACC
+  const m4 = document.getElementById('m4');
+  m4.textContent = d.market_cap || d.wacc || '—';
+  m4.nextElementSibling && (m4.nextElementSibling.textContent = d.market_cap ? 'Market Cap' : 'WACC');
+
   setText('tOverview',d.overview,'sOverview');
   setList('lFinancials',d.financials,'sFinancials');
   setList('lStrengths',d.strengths,'sStrengths');
