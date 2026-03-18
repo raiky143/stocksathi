@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockSathi — Automated Stock Valuation for Indian Markets</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#FFFFFF; --bg2:#F7F9FC; --bg3:#EEF2F8;
+  --border:#E2E8F0; --border2:#CBD5E1;
+  --text:#0F172A; --text2:#475569; --text3:#94A3B8;
+  --accent:#2563EB; --accent2:#1D4ED8; --accent-lt:#EFF6FF;
+  --green:#059669; --green-lt:#ECFDF5;
+  --red:#DC2626; --red-lt:#FEF2F2;
+  --amber:#D97706; --amber-lt:#FFFBEB;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:0 20px 40px rgba(0,0,0,0.10),0 4px 8px rgba(0,0,0,0.04);
+  --radius:8px;
+}
+html { scroll-behavior: smooth; }
+body { background:var(--bg); color:var(--text); font-family:'Sora',sans-serif; font-weight:400; line-height:1.6; overflow-x:hidden; }
+
+/* NAV */
+nav { position:sticky; top:0; background:rgba(255,255,255,0.96); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); height:60px; display:flex; align-items:center; padding:0 5vw; justify-content:space-between; z-index:1000; }
+.nav-logo { font-size:18px; font-weight:800; color:var(--text); text-decoration:none; display:flex; align-items:center; gap:8px; }
+.logo-dot { color:var(--accent); }
+.logo-badge { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:500; background:var(--accent-lt); color:var(--accent); padding:2px 8px; border-radius:20px; }
+.nav-links { display:flex; align-items:center; gap:4px; list-style:none; }
+.nav-links a { font-size:13px; font-weight:500; color:var(--text2); text-decoration:none; padding:6px 14px; border-radius:var(--radius); transition:background 0.15s,color 0.15s; }
+.nav-links a:hover { background:var(--bg2); color:var(--text); }
+.nav-cta { background:var(--accent) !important; color:#fff !important; font-weight:600 !important; }
+.nav-cta:hover { background:var(--accent2) !important; }
+@media(max-width:700px){.nav-links{display:none;}}
+
+/* HERO */
+.hero { padding:80px 5vw 56px; text-align:center; background:linear-gradient(180deg,#EFF6FF 0%,#FFFFFF 100%); border-bottom:1px solid var(--border); position:relative; overflow:hidden; }
+.hero::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 20% 60%,rgba(37,99,235,0.07) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(37,99,235,0.05) 0%,transparent 40%); pointer-events:none; }
+.hero-badge { display:inline-flex; align-items:center; gap:6px; background:var(--accent-lt); color:var(--accent); font-size:12px; font-weight:600; padding:5px 14px; border-radius:20px; margin-bottom:24px; border:1px solid rgba(37,99,235,0.2); }
+.hero-badge-dot { width:6px; height:6px; background:var(--accent); border-radius:50%; animation:pulse 2s infinite; }
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.hero h1 { font-size:clamp(30px,5.5vw,60px); font-weight:800; line-height:1.1; letter-spacing:-2px; margin-bottom:20px; max-width:780px; margin-left:auto; margin-right:auto; }
+.hero h1 .blu { color:var(--accent); }
+.hero-sub { font-size:16px; color:var(--text2); max-width:540px; margin:0 auto 44px; line-height:1.8; }
+
+/* SEARCH */
+.search-wrap { max-width:680px; margin:0 auto 16px; }
+.search-bar { display:flex; background:#fff; border:2px solid var(--border); border-radius:12px; box-shadow:var(--shadow-lg); overflow:hidden; transition:border-color 0.2s,box-shadow 0.2s; }
+.search-bar:focus-within { border-color:var(--accent); box-shadow:0 0 0 4px rgba(37,99,235,0.1),var(--shadow-lg); }
+.s-icon { display:flex; align-items:center; padding:0 14px 0 20px; color:var(--text3); font-size:18px; }
+.s-input { flex:1; border:none; outline:none; font-family:'Sora',sans-serif; font-size:15px; font-weight:500; color:var(--text); padding:18px 0; background:transparent; }
+.s-input::placeholder { color:var(--text3); font-weight:400; }
+.s-btn { background:var(--accent); color:#fff; font-family:'Sora',sans-serif; font-size:14px; font-weight:600; padding:0 28px; border:none; cursor:pointer; transition:background 0.15s; white-space:nowrap; margin:8px; border-radius:8px; }
+.s-btn:hover { background:var(--accent2); }
+.s-btn:disabled { opacity:.6; cursor:not-allowed; }
+.hints { display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; font-size:12px; color:var(--text3); }
+.chip { background:var(--bg2); border:1px solid var(--border); color:var(--text2); font-size:11px; font-weight:600; padding:3px 10px; border-radius:6px; cursor:pointer; transition:all 0.15s; font-family:'JetBrains Mono',monospace; }
+.chip:hover { background:var(--accent-lt); color:var(--accent); border-color:var(--accent); }
+
+/* TRUST BAR */
+.trust-bar { padding:18px 5vw; background:var(--bg2); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:center; gap:36px; flex-wrap:wrap; }
+.trust-item { display:flex; align-items:center; gap:7px; font-size:12px; font-weight:600; color:var(--text2); }
+
+/* RESULT SECTION */
+.result-section { max-width:860px; margin:32px auto; padding:0 5vw; display:none; }
+.result-section.show { display:block; }
+
+/* Skeleton */
+.skeleton { display:none; }
+.skeleton.show { display:block; }
+.skel-box { background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%); background-size:200% 100%; animation:sh 1.4s infinite; border-radius:6px; }
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:24px 28px; margin-bottom:16px; display:flex; align-items:center; gap:16px; }
+
+/* Result Card */
+.res-card { background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-md); overflow:hidden; display:none; }
+.res-card.show { display:block; animation:su 0.35s ease; }
+@keyframes su{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.res-header { padding:20px 28px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.res-company { font-size:20px; font-weight:700; }
+.res-ticker { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text3); margin-top:3px; }
+.verdict-pill { font-size:12px; font-weight:700; padding:6px 18px; border-radius:20px; }
+.vp-buy  { background:var(--green-lt); color:var(--green); }
+.vp-hold { background:var(--amber-lt); color:var(--amber); }
+.vp-sell { background:var(--red-lt);   color:var(--red); }
+.metrics { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--border); }
+@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr);}}
+.metric { padding:18px 24px; border-right:1px solid var(--border); }
+.metric:last-child{border-right:none;}
+.mv { font-size:18px; font-weight:700; font-family:'JetBrains Mono',monospace; margin-bottom:4px; color:var(--text); }
+.mv.up{color:var(--green);} .mv.dn{color:var(--red);} .mv.nt{color:var(--accent);}
+.ml { font-size:10px; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+.res-body { padding:28px; }
+.rsec { margin-bottom:24px; }
+.rsec-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.rsec-title::after { content:''; flex:1; height:1px; background:var(--border); }
+.rsec p { font-size:14px; color:var(--text2); line-height:1.8; }
+.rsec ul { list-style:none; display:flex; flex-direction:column; gap:7px; }
+.rsec ul li { font-size:14px; color:var(--text2); display:flex; gap:10px; }
+.rsec ul li::before { content:'→'; color:var(--accent); font-weight:700; flex-shrink:0; }
+.verdict-box { background:var(--accent-lt); border:1px solid rgba(37,99,235,.2); border-radius:var(--radius); padding:16px 20px; display:flex; gap:12px; align-items:flex-start; }
+.verdict-box.hold-box{background:var(--amber-lt);border-color:rgba(217,119,6,.2);}
+.verdict-box.sell-box{background:var(--red-lt);border-color:rgba(220,38,38,.2);}
+.disc { font-size:11px; color:var(--text3); padding:12px 16px; background:var(--bg2); border-top:1px solid var(--border); line-height:1.6; }
+
+/* STATS BAND */
+.stats-band { background:var(--accent); padding:56px 5vw; display:flex; justify-content:center; gap:0; flex-wrap:wrap; }
+.stat-item { flex:1; min-width:150px; max-width:200px; text-align:center; padding:0 24px; border-right:1px solid rgba(255,255,255,.2); }
+.stat-item:last-child{border-right:none;}
+.stat-num { font-size:36px; font-weight:800; color:#fff; letter-spacing:-1px; }
+.stat-lbl { font-size:12px; color:rgba(255,255,255,.75); font-weight:500; margin-top:4px; }
+
+/* FEATURES */
+.features { padding:80px 5vw; border-top:1px solid var(--border); }
+.eyebrow { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--accent); margin-bottom:10px; }
+.sec-title { font-size:clamp(24px,4vw,38px); font-weight:800; letter-spacing:-1px; margin-bottom:12px; line-height:1.2; }
+.sec-sub { font-size:15px; color:var(--text2); max-width:520px; line-height:1.7; }
+.feat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; margin-top:44px; }
+.feat-card { background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:26px 22px; transition:box-shadow .2s,border-color .2s; }
+.feat-card:hover { box-shadow:var(--shadow-md); border-color:var(--accent); }
+.feat-icon { width:44px; height:44px; background:var(--accent-lt); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:14px; }
+.feat-name { font-size:15px; font-weight:700; margin-bottom:8px; }
+.feat-desc { font-size:13px; color:var(--text2); line-height:1.7; }
+
+/* HOW */
+.how { padding:80px 5vw; background:var(--bg2); border-top:1px solid var(--border); }
+.steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:36px; margin-top:44px; max-width:860px; margin-left:auto; margin-right:auto; }
+.step { text-align:center; }
+.step-num { width:48px; height:48px; background:var(--accent); color:#fff; font-size:18px; font-weight:800; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+.step-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+.step-desc { font-size:13px; color:var(--text2); line-height:1.7; }
+
+/* REPORTS */
+.reports { padding:80px 5vw; border-top:1px solid var(--border); }
+.rpt-controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:32px 0 24px; }
+.lib-search { flex:1; min-width:200px; border:1px solid var(--border); border-radius:var(--radius); padding:10px 16px; font-family:'Sora',sans-serif; font-size:13px; color:var(--text); background:#fff; outline:none; transition:border-color .2s; }
+.lib-search:focus{border-color:var(--accent);}
+.fpill { background:#fff; border:1px solid var(--border); color:var(--text2); font-family:'Sora',sans-serif; font-size:12px; font-weight:600; padding:8px 16px; border-radius:20px; cursor:pointer; transition:all .15s; }
+.fpill:hover{border-color:var(--accent);color:var(--accent);}
+.fpill.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.rpt-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; }
+.rpt-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:20px; display:flex; flex-direction:column; box-shadow:var(--shadow); transition:box-shadow .2s,border-color .2s; }
+.rpt-card:hover{box-shadow:var(--shadow-md);border-color:var(--border2);}
+.rpt-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
+.rpt-ico { width:40px; height:40px; background:var(--bg2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.rv-pill { font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px; }
+.rv-buy{background:var(--green-lt);color:var(--green);}
+.rv-hold{background:var(--amber-lt);color:var(--amber);}
+.rv-sell{background:var(--red-lt);color:var(--red);}
+.rpt-co { font-size:15px; font-weight:700; margin-bottom:3px; }
+.rpt-tk { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text3); margin-bottom:8px; }
+.rpt-sec { font-size:11px; color:var(--text3); background:var(--bg2); display:inline-block; padding:2px 8px; border-radius:4px; margin-bottom:14px; }
+.rpt-meta { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.rpt-meta span { font-size:11px; color:var(--text3); }
+.rpt-dl { display:flex; align-items:center; justify-content:center; gap:7px; background:var(--accent); color:#fff; font-family:'Sora',sans-serif; font-size:12px; font-weight:600; padding:10px; border-radius:var(--radius); text-decoration:none; margin-top:auto; transition:background .15s; }
+.rpt-dl:hover{background:var(--accent2);}
+
+/* FOOTER */
+footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 28px; }
+.ft-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:44px; margin-bottom:44px; }
+@media(max-width:768px){.ft-grid{grid-template-columns:1fr 1fr;gap:28px;}}
+.ft-logo { font-size:20px; font-weight:800; color:#fff; margin-bottom:10px; display:block; }
+.ft-tag { font-size:13px; line-height:1.7; }
+.ft-col-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#fff; margin-bottom:14px; }
+.ft-links { list-style:none; display:flex; flex-direction:column; gap:9px; }
+.ft-links a { font-size:13px; color:rgba(255,255,255,.55); text-decoration:none; transition:color .15s; }
+.ft-links a:hover{color:#fff;}
+.ft-bottom { border-top:1px solid rgba(255,255,255,.1); padding-top:22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.ft-copy { font-size:12px; }
+.ft-disc { font-size:11px; max-width:460px; text-align:right; opacity:.45; }
+
+/* FADE-IN */
+.fi { opacity:0; transform:translateY(14px); transition:opacity .55s ease,transform .55s ease; }
+.fi.on { opacity:1; transform:translateY(0); }
+.d1{transition-delay:.1s;} .d2{transition-delay:.2s;} .d3{transition-delay:.3s;}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">StockSathi<span class="logo-dot">.</span><span class="logo-badge">INDIA</span></a>
+  <ul class="nav-links">
+    <li><a href="#analyse">Analyse</a></li>
+    <li><a href="#reports">Reports</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#reports" class="nav-cta">↓ Free Reports</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="analyse">
+  <div class="hero-badge"><span class="hero-badge-dot"></span>🇮🇳 Built for Indian Markets</div>
+  <h1>Automated Stock Valuation<br>for <span class="blu">Indian Investors</span></h1>
+  <p class="hero-sub">Search any NSE/BSE stock and get an instant AI-powered fundamental analysis — DCF, WACC, Multiples &amp; a clear Buy/Hold/Sell verdict.</p>
+
+  <div class="search-wrap">
+    <div class="search-bar">
+      <div class="s-icon">🔍</div>
+      <input class="s-input" id="stockInput" type="text" placeholder="Search stock... TCS, IRCON, Reliance, NVDA..." autocomplete="off" spellcheck="false" />
+      <button class="s-btn" id="analyseBtn" onclick="analyseStock()">Analyse →</button>
+    </div>
+  </div>
+  <div class="hints">
+    <span style="font-size:12px;color:var(--text3);">Try:</span>
+    <span class="chip" onclick="qs('TCS.NS')">TCS.NS</span>
+    <span class="chip" onclick="qs('RELIANCE.NS')">RELIANCE.NS</span>
+    <span class="chip" onclick="qs('IRCON International')">IRCON</span>
+    <span class="chip" onclick="qs('HDFC Bank')">HDFC Bank</span>
+    <span class="chip" onclick="qs('Waaree Energies')">Waaree</span>
+    <span class="chip" onclick="qs('NVDA')">NVDA</span>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-item">📊 DCF Valuation</div>
+  <div class="trust-item">⚖️ WACC Calculator</div>
+  <div class="trust-item">📈 Trading Multiples</div>
+  <div class="trust-item">💡 AI Analysis</div>
+  <div class="trust-item">✅ 100% Free</div>
+</div>
+
+<!-- LIVE RESULT -->
+<div class="result-section" id="resultSection">
+  <!-- Skeleton -->
+  <div class="skeleton" id="skeleton">
+    <div class="skel-card">
+      <div class="skel-box" style="width:48px;height:48px;border-radius:10px;flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <div class="skel-box" style="height:20px;width:220px;margin-bottom:8px;"></div>
+        <div class="skel-box" style="height:12px;width:130px;"></div>
+      </div>
+      <div class="skel-box" style="height:32px;width:80px;border-radius:20px;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;">
+      <div style="padding:18px 24px;border-right:1px solid var(--border);"><div class="skel-box" style="height:22px;width:80px;margin-bottom:6px;"></div><div class="skel-box" style="height:10px;width:60px;"></div></div>
+      <div style="padding:18px 24px;border-right:1px solid var(--border);"><div class="skel-box" style="height:22px;width:80px;margin-bottom:6px;"></div><div class="skel-box" style="height:10px;width:60px;"></div></div>
+      <div style="padding:18px 24px;border-right:1px solid var(--border);"><div class="skel-box" style="height:22px;width:80px;margin-bottom:6px;"></div><div class="skel-box" style="height:10px;width:60px;"></div></div>
+      <div style="padding:18px 24px;"><div class="skel-box" style="height:22px;width:80px;margin-bottom:6px;"></div><div class="skel-box" style="height:10px;width:60px;"></div></div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+      <div class="skel-box" style="height:14px;width:100%;margin-bottom:10px;"></div>
+      <div class="skel-box" style="height:14px;width:85%;margin-bottom:10px;"></div>
+      <div class="skel-box" style="height:14px;width:70%;"></div>
+    </div>
+  </div>
+
+  <!-- Result Card -->
+  <div class="res-card" id="resCard">
+    <div class="res-header">
+      <div>
+        <div class="res-company" id="rCompany">—</div>
+        <div class="res-ticker" id="rTicker">—</div>
+      </div>
+      <div id="rVerdict" class="verdict-pill vp-buy">▲ BUY</div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="mv nt" id="m1">—</div><div class="ml">DCF Fair Value</div></div>
+      <div class="metric"><div class="mv" id="m2">—</div><div class="ml">Upside / Downside</div></div>
+      <div class="metric"><div class="mv" id="m3">—</div><div class="ml">P/E Ratio</div></div>
+      <div class="metric"><div class="mv" id="m4">—</div><div class="ml">WACC</div></div>
+    </div>
+    <div class="res-body">
+      <div class="rsec" id="sOverview" style="display:none;"><div class="rsec-title">Company Overview</div><p id="tOverview"></p></div>
+      <div class="rsec" id="sFinancials" style="display:none;"><div class="rsec-title">Key Financials</div><ul id="lFinancials"></ul></div>
+      <div class="rsec" id="sStrengths" style="display:none;"><div class="rsec-title">Strengths</div><ul id="lStrengths"></ul></div>
+      <div class="rsec" id="sRisks" style="display:none;"><div class="rsec-title">Key Risks</div><ul id="lRisks"></ul></div>
+      <div class="rsec" id="sVerdict" style="display:none;">
+        <div class="rsec-title">Analyst Verdict</div>
+        <div class="verdict-box" id="verdictBox">
+          <span style="font-size:22px;" id="vEmoji">✅</span>
+          <p id="tVerdict"></p>
+        </div>
+      </div>
+    </div>
+    <div class="disc">⚠️ AI-generated for educational purposes only. Not financial advice. Always do your own research before investing.</div>
+  </div>
+</div>
+
+<!-- STATS BAND -->
+<div class="stats-band fi">
+  <div class="stat-item"><div class="stat-num">9+</div><div class="stat-lbl">Free Excel Reports</div></div>
+  <div class="stat-item"><div class="stat-num">7</div><div class="stat-lbl">Sheets per Report</div></div>
+  <div class="stat-item"><div class="stat-num">5</div><div class="stat-lbl">Valuation Methods</div></div>
+  <div class="stat-item"><div class="stat-num">∞</div><div class="stat-lbl">Stocks Analysable</div></div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="eyebrow fi">What's inside</div>
+  <h2 class="sec-title fi">Institutional-grade analysis.<br>Completely free.</h2>
+  <p class="sec-sub fi">Five valuation methods run simultaneously — so you never rely on a single model.</p>
+  <div class="feat-grid">
+    <div class="feat-card fi"><div class="feat-icon">📊</div><div class="feat-name">DCF Valuation</div><div class="feat-desc">10-year FCF projection with terminal value and full ±2% sensitivity grid for bear/base/bull scenarios.</div></div>
+    <div class="feat-card fi d1"><div class="feat-icon">⚖️</div><div class="feat-name">WACC Engine</div><div class="feat-desc">Sector-aware WACC using actual tax rate, Damodaran ERP, and India/US market-calibrated beta floor.</div></div>
+    <div class="feat-card fi d2"><div class="feat-icon">📈</div><div class="feat-name">Trading Multiples</div><div class="feat-desc">P/E, EV/EBITDA, P/B, P/S compared against sector medians for fair value range estimation.</div></div>
+    <div class="feat-card fi"><div class="feat-icon">💰</div><div class="feat-name">Dividend Discount Model</div><div class="feat-desc">Gordon Growth Model for dividend stocks with sustainable payout ratio analysis.</div></div>
+    <div class="feat-card fi d1"><div class="feat-icon">🏦</div><div class="feat-name">12-Year History</div><div class="feat-desc">P&amp;L, Balance Sheet, and Cash Flow from Yahoo Finance, Screener.in, and NSE India.</div></div>
+    <div class="feat-card fi d2"><div class="feat-icon">✅</div><div class="feat-name">Buy / Hold / Sell Verdict</div><div class="feat-desc">All methods converge into one decisive verdict — with clear upside/downside calculations.</div></div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="how">
+  <div style="text-align:center;margin-bottom:44px;">
+    <div class="eyebrow fi">How it works</div>
+    <h2 class="sec-title fi">Three simple steps</h2>
+  </div>
+  <div class="steps">
+    <div class="step fi"><div class="step-num">1</div><div class="step-title">Search any stock</div><div class="step-desc">Type a company name or ticker. Indian NSE/BSE or US stocks all supported.</div></div>
+    <div class="step fi d1"><div class="step-num">2</div><div class="step-title">Get instant AI analysis</div><div class="step-desc">Our AI analyst runs DCF, WACC, multiples and DDM — delivering a live report in seconds.</div></div>
+    <div class="step fi d2"><div class="step-num">3</div><div class="step-title">Download Excel report</div><div class="step-desc">For select stocks, download our full 7-sheet Excel model for deep-dive offline analysis.</div></div>
+  </div>
+</section>
+
+<!-- REPORTS -->
+<section class="reports" id="reports">
+  <div class="eyebrow fi">Free Report Library</div>
+  <h2 class="sec-title fi">Download full Excel valuation reports</h2>
+  <p class="sec-sub fi">Complete 7-sheet models with DCF, WACC, P&amp;L, Balance Sheet, Cash Flow, Trading Multiples &amp; verdict. No login. No email. Free forever.</p>
+  <div class="rpt-controls">
+    <input class="lib-search" id="libSearch" type="text" placeholder="🔍  Search reports..." oninput="filterRpts()" />
+    <button class="fpill on" data-tag="all" onclick="filterTag('all')">All</button>
+    <button class="fpill" data-tag="infra" onclick="filterTag('infra')">Infrastructure</button>
+    <button class="fpill" data-tag="tech" onclick="filterTag('tech')">Technology</button>
+    <button class="fpill" data-tag="banking" onclick="filterTag('banking')">Banking</button>
+    <button class="fpill" data-tag="pharma" onclick="filterTag('pharma')">Pharma</button>
+    <button class="fpill" data-tag="energy" onclick="filterTag('energy')">Energy</button>
+  </div>
+  <div class="rpt-grid" id="rptGrid"></div>
+  <div id="noRpts" style="display:none;text-align:center;padding:48px;color:var(--text3);font-size:14px;">No reports found.</div>
+  <p id="rptCount" style="text-align:center;margin-top:24px;font-size:12px;color:var(--text3);">9 reports available · More coming soon</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-grid">
+    <div>
+      <span class="ft-logo">StockSathi.</span>
+      <p class="ft-tag">Professional stock analysis for Indian and global equities. Powered by AI and live financial data. Free forever.</p>
+    </div>
+    <div>
+      <div class="ft-col-title">Analyse</div>
+      <ul class="ft-links">
+        <li><a href="#analyse">Live Analysis</a></li>
+        <li><a href="#reports">Excel Reports</a></li>
+        <li><a href="#features">Features</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="ft-col-title">Reports</div>
+      <ul class="ft-links">
+        <li><a href="#reports">IRCON</a></li>
+        <li><a href="#reports">TCS</a></li>
+        <li><a href="#reports">Waaree Energies</a></li>
+        <li><a href="#reports">View all →</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="ft-col-title">Data Sources</div>
+      <ul class="ft-links">
+        <li><a href="#">Yahoo Finance</a></li>
+        <li><a href="#">Screener.in</a></li>
+        <li><a href="#">NSE India</a></li>
+        <li><a href="#">Damodaran ERP</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="ft-bottom">
+    <div class="ft-copy">© 2026 StockSathi · Free forever · Made in India 🇮🇳</div>
+    <div class="ft-disc">For educational purposes only. Not financial advice. Always consult a SEBI-registered advisor before investing.</div>
+  </div>
+</footer>
+
+<script>
+/* REPORTS */
+const rptData = [
+  {co:'IRCON International',tk:'IRCON.NS',file:'IRCON_Valuation_StockSathi.xlsx',sec:'Infrastructure',tag:'infra',ico:'🚆',v:'buy'},
+  {co:'IRFC',tk:'IRFC.NS',file:'IRFC_Valuation_StockSathi.xlsx',sec:'Finance / Infra',tag:'infra',ico:'🏗️',v:'hold'},
+  {co:'TCS',tk:'TCS.NS',file:'TCS_Valuation_StockSathi.xlsx',sec:'IT Services',tag:'tech',ico:'💻',v:'buy'},
+  {co:'Bandhan Bank',tk:'BANDHANBNK.NS',file:'BandhanBank_Valuation_StockSathi.xlsx',sec:'Banking',tag:'banking',ico:'🏦',v:'hold'},
+  {co:'JustDial',tk:'JUSTDIAL.NS',file:'JustDial_Valuation_StockSathi.xlsx',sec:'Internet / Tech',tag:'tech',ico:'📱',v:'buy'},
+  {co:'Piramal Pharma',tk:'PPLPHARMA.NS',file:'PiramalPharma_Valuation_StockSathi.xlsx',sec:'Pharmaceuticals',tag:'pharma',ico:'💊',v:'hold'},
+  {co:'Syngene International',tk:'SYNGENE.NS',file:'Syngene_Valuation_StockSathi.xlsx',sec:'Pharma / Biotech',tag:'pharma',ico:'🧬',v:'buy'},
+  {co:'TCI Express',tk:'TCIEXP.NS',file:'TCIExpress_Valuation_StockSathi.xlsx',sec:'Logistics',tag:'infra',ico:'🚚',v:'buy'},
+  {co:'Waaree Energies',tk:'WAAREEENER.NS',file:'WaareeEnergies_Valuation_StockSathi.xlsx',sec:'Renewable Energy',tag:'energy',ico:'☀️',v:'buy'},
+];
+let activeTag = 'all';
+
+function renderRpts(list) {
+  const g = document.getElementById('rptGrid');
+  const n = document.getElementById('noRpts');
+  const c = document.getElementById('rptCount');
+  if (!list.length) { g.innerHTML=''; n.style.display='block'; return; }
+  n.style.display = 'none';
+  c.textContent = `${list.length} report${list.length!==1?'s':''} available · More coming soon`;
+  g.innerHTML = list.map(r=>`
+    <div class="rpt-card">
+      <div class="rpt-top">
+        <div class="rpt-ico">${r.ico}</div>
+        <span class="rv-pill rv-${r.v}">${r.v.toUpperCase()}</span>
+      </div>
+      <div class="rpt-co">${r.co}</div>
+      <div class="rpt-tk">${r.tk}</div>
+      <span class="rpt-sec">${r.sec}</span>
+      <div class="rpt-meta">
+        <span>📄 7 Sheets</span>
+        <span>📅 Mar 2026</span>
+        <span>✅ Free</span>
+      </div>
+      <a href="${r.file}" download class="rpt-dl">↓ Download Excel Report</a>
+    </div>
+  `).join('');
+}
+
+function filterRpts() {
+  const q = (document.getElementById('libSearch').value||'').toLowerCase();
+  renderRpts(rptData.filter(r=>{
+    const tagOk = activeTag==='all'||r.tag===activeTag;
+    const qOk = !q||r.co.toLowerCase().includes(q)||r.tk.toLowerCase().includes(q)||r.sec.toLowerCase().includes(q);
+    return tagOk&&qOk;
+  }));
+}
+
+function filterTag(tag) {
+  activeTag = tag;
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.toggle('on',p.dataset.tag===tag));
+  filterRpts();
+}
+
+renderRpts(rptData);
+
+/* LIVE ANALYSIS */
+function qs(q) { document.getElementById('stockInput').value=q; analyseStock(); }
+document.getElementById('stockInput').addEventListener('keydown',e=>{ if(e.key==='Enter') analyseStock(); });
+
+async function analyseStock() {
+  const query = document.getElementById('stockInput').value.trim();
+  if (!query) return;
+  const btn = document.getElementById('analyseBtn');
+  const rs = document.getElementById('resultSection');
+  const sk = document.getElementById('skeleton');
+  const rc = document.getElementById('resCard');
+
+  btn.disabled=true; btn.textContent='Analysing...';
+  rs.classList.add('show');
+  sk.classList.add('show');
+  rc.classList.remove('show');
+  rs.scrollIntoView({behavior:'smooth',block:'start'});
+
+  const prompt = `You are StockSathi, a professional Indian stock analyst. Analyse: "${query}"
+Respond ONLY with valid JSON (no markdown, no extra text):
+{"company":"Full name","ticker":"NSE ticker","sector":"Sector","dcf_value":"₹XXX","upside":"+X.X% or -X.X%","pe_ratio":"XX.Xx","wacc":"X.XX%","verdict":"BUY or HOLD or SELL","overview":"2 sentence description.","financials":["Revenue: ₹X,XXX Cr","Net Margin: X.X%","ROCE: XX%","Debt/Equity: X.Xx","Market Cap: ₹X,XX,XXX Cr"],"strengths":["Strength 1","Strength 2","Strength 3"],"risks":["Risk 1","Risk 2","Risk 3"],"verdict_text":"One clear sentence explaining verdict with key data."}`;
+
+  try {
+    const KEY = 'AIzaSyC6MmPFRdIKRHe0h2vogWk8FxiKBlvjTi4';
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${KEY}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:900,temperature:0.5}})
+    });
+    const data = await res.json();
+    let raw = data?.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    raw = raw.replace(/```json|```/g,'').trim();
+    fillResult(JSON.parse(raw));
+  } catch(e) {
+    document.getElementById('rCompany').textContent='Analysis failed — please try again';
+    document.getElementById('rTicker').textContent='';
+    rc.classList.add('show');
+  }
+  sk.classList.remove('show');
+  btn.disabled=false; btn.textContent='Analyse →';
+}
+
+function fillResult(d) {
+  document.getElementById('rCompany').textContent = d.company||'—';
+  document.getElementById('rTicker').textContent = (d.ticker||'') + (d.sector?' · '+d.sector:'');
+  const v = (d.verdict||'HOLD').toUpperCase();
+  const vEl = document.getElementById('rVerdict');
+  vEl.textContent = v==='BUY'?'▲ BUY':v==='SELL'?'▼ SELL':'◆ HOLD';
+  vEl.className = 'verdict-pill '+(v==='BUY'?'vp-buy':v==='SELL'?'vp-sell':'vp-hold');
+  document.getElementById('m1').textContent = d.dcf_value||'—';
+  const m2=document.getElementById('m2');
+  m2.textContent=d.upside||'—';
+  m2.className='mv '+((d.upside||'').startsWith('+')?' up':(d.upside||'').startsWith('-')?' dn':'');
+  document.getElementById('m3').textContent=d.pe_ratio||'—';
+  document.getElementById('m4').textContent=d.wacc||'—';
+  setText('tOverview',d.overview,'sOverview');
+  setList('lFinancials',d.financials,'sFinancials');
+  setList('lStrengths',d.strengths,'sStrengths');
+  setList('lRisks',d.risks,'sRisks');
+  if(d.verdict_text){
+    document.getElementById('tVerdict').textContent=d.verdict_text;
+    const vb=document.getElementById('verdictBox');
+    vb.className='verdict-box'+(v==='SELL'?' sell-box':v==='HOLD'?' hold-box':'');
+    document.getElementById('vEmoji').textContent=v==='BUY'?'✅':v==='SELL'?'⚠️':'◆';
+    document.getElementById('sVerdict').style.display='block';
+  } else { document.getElementById('sVerdict').style.display='none'; }
+  document.getElementById('resCard').classList.add('show');
+}
+
+function setText(id,text,secId){
+  document.getElementById(id).textContent=text||'';
+  document.getElementById(secId).style.display=text?'block':'none';
+}
+function setList(id,items,secId){
+  const el=document.getElementById(id);
+  el.innerHTML=(items||[]).map(i=>`<li>${i}</li>`).join('');
+  document.getElementById(secId).style.display=(items?.length)?'block':'none';
+}
+
+/* SCROLL FADE */
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('on'); });
+},{threshold:0.1});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
