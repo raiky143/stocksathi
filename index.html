@@ -442,60 +442,8 @@ function qs(q) { document.getElementById('stockInput').value=q; analyseStock(); 
 document.getElementById('stockInput').addEventListener('keydown',e=>{ if(e.key==='Enter') analyseStock(); });
 
 /* Fetch live stock data using multiple free APIs */
-async function fetchLiveData(query) {
-  let ticker = query.trim().toUpperCase();
-  // Auto-add .NS for Indian stocks
-  if (!ticker.includes('.') && !['NVDA','AAPL','MSFT','GOOGL','AMZN','META','TSLA','NFLX','AMD','INTC'].includes(ticker)) {
-    ticker = ticker + '.NS';
-  }
-
-  // Try finnhub free API (no CORS issues)
-  try {
-    const FKEY = 'cvo0339r01qhup3b5mr0cvo0339r01qhup3b5mrg';
-    const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${FKEY}`);
-    const quote = await quoteRes.json();
-
-    const profileRes = await fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${ticker}&token=${FKEY}`);
-    const profile = await profileRes.json();
-
-    if (quote && quote.c && quote.c > 0) {
-      const sym = profile.currency === 'INR' ? '₹' : (profile.currency === 'USD' ? '$' : '');
-      const change = ((quote.c - quote.pc) / quote.pc * 100).toFixed(2);
-      return {
-        ticker: ticker,
-        company: profile.name || ticker,
-        price: quote.c?.toFixed(2),
-        prevClose: quote.pc?.toFixed(2),
-        high: quote.h?.toFixed(2),
-        low: quote.l?.toFixed(2),
-        open: quote.o?.toFixed(2),
-        change: change,
-        week52High: quote['52WeekHigh']?.toFixed(2) || '—',
-        week52Low: quote['52WeekLow']?.toFixed(2) || '—',
-        marketCap: profile.marketCapitalization ? (profile.marketCapitalization * 1e6) : null,
-        pe: profile.peNormalizedAnnual?.toFixed(1) || null,
-        currency: profile.currency || 'INR',
-        exchange: profile.exchange || '',
-        sym: sym
-      };
-    }
-  } catch(e) {}
-
-  return null;
-}
-
-function fmtCap(mc, currency) {
-  if (!mc) return null;
-  const sym = currency === 'INR' ? '₹' : '$';
-  if (currency === 'INR') {
-    if (mc >= 1e12) return sym + (mc/1e12).toFixed(1) + ' L Cr';
-    if (mc >= 1e9)  return sym + (mc/1e9).toFixed(0) + ',000 Cr';
-    return sym + (mc/1e7).toFixed(0) + ' Cr';
-  }
-  if (mc >= 1e12) return sym + (mc/1e12).toFixed(2) + 'T';
-  if (mc >= 1e9)  return sym + (mc/1e9).toFixed(1) + 'B';
-  return sym + (mc/1e6).toFixed(0) + 'M';
-}
+async function fetchLiveData(query) { return null; }
+function fmtCap(mc, currency) { return null; }
 
 async function analyseStock() {
   const query = document.getElementById('stockInput').value.trim();
@@ -505,90 +453,73 @@ async function analyseStock() {
   const sk = document.getElementById('skeleton');
   const rc = document.getElementById('resCard');
 
-  btn.disabled=true; btn.textContent='Fetching live data...';
+  btn.disabled=true; btn.textContent='Analysing...';
   rs.classList.add('show');
   sk.classList.add('show');
   rc.classList.remove('show');
   rs.scrollIntoView({behavior:'smooth',block:'start'});
 
-  // Step 1: Fetch live data
-  btn.textContent = 'Fetching live data...';
-  const live = await fetchLiveData(query);
-  const sym = live?.sym || (live?.currency === 'INR' ? '₹' : '$');
-  const capStr = fmtCap(live?.marketCap, live?.currency) || 'N/A';
+  const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
 
-  // Build live data context for Gemini
-  const liveContext = live ? `
-LIVE MARKET DATA (today's real numbers — use these exactly):
-- Company: ${live.company}
-- Ticker: ${live.ticker}
-- Current Price: ${sym}${live.price}
-- Previous Close: ${sym}${live.prevClose}
-- Today's Change: ${live.change >= 0 ? '+' : ''}${live.change}%
-- Today's High: ${sym}${live.high}
-- Today's Low: ${sym}${live.low}
-- Market Cap: ${capStr}
-- P/E Ratio: ${live.pe || 'N/A'}
-- Exchange: ${live.exchange}
-` : `No live price data found. Use your best knowledge for: "${query}"`;
+  const prompt = `You are StockSathi, a professional Indian stock market analyst. Today is ${today}.
+User searched: "${query}"
 
-  btn.textContent = 'Running AI analysis...';
+Use your knowledge to give the most accurate and recent data available for this stock.
+Respond ONLY with valid JSON — no markdown, no code fences, start directly with {
 
-  const prompt = `You are StockSathi, a professional Indian stock analyst.
-
-${liveContext}
-
-Based on the live data above and your financial knowledge, provide a complete analysis.
-Respond ONLY with valid JSON (no markdown, no extra text):
 {
-  "company": "${live?.company || query}",
-  "ticker": "${live?.ticker || query}",
+  "company": "Full company name",
+  "ticker": "Exchange ticker e.g. TCS.NS",
   "sector": "Sector name",
-  "dcf_value": "Estimated DCF fair value with ${sym} symbol",
-  "upside": "Upside or downside % vs current price ${sym}${live?.price || ''}",
-  "pe_ratio": "${live?.pe ? live.pe + 'x' : 'Estimated'}",
-  "wacc": "Estimated WACC %",
+  "current_price": "Recent price with ₹ or $ e.g. ₹3,842",
+  "change_today": "Recent % change e.g. +1.2% or -0.8%",
+  "market_cap": "e.g. ₹13,90,000 Cr",
+  "pe_ratio": "e.g. 28.4x",
+  "dcf_value": "Estimated intrinsic value e.g. ₹4,200",
+  "upside": "e.g. +9.3% or -5.1%",
+  "wacc": "e.g. 12.5%",
   "verdict": "BUY or HOLD or SELL",
-  "current_price": "${sym}${live?.price || 'N/A'}",
-  "change_today": "${live ? (live.change >= 0 ? '+' : '') + live.change + '%' : 'N/A'}",
-  "market_cap": "${capStr}",
-  "overview": "2 sentence company description.",
+  "overview": "2 sentences about what the company does and its market position.",
   "financials": [
-    "Live Price: ${sym}${live?.price || 'N/A'} (${live ? (live.change >= 0 ? '+' : '') + live.change + '%' : ''} today)",
-    "Today High/Low: ${sym}${live?.high || 'N/A'} / ${sym}${live?.low || 'N/A'}",
-    "Market Cap: ${capStr}",
-    "P/E Ratio: ${live?.pe ? live.pe + 'x' : 'N/A'}",
-    "Estimated Revenue Growth: provide a value",
-    "Estimated Net Margin: provide a value",
-    "Estimated ROCE: provide a value",
-    "Estimated Debt/Equity: provide a value"
+    "Revenue FY24: ₹X,XXX Cr (Growth: +X%)",
+    "Net Profit: ₹X,XXX Cr (Margin: X%)",
+    "ROCE: X% | ROE: X%",
+    "Debt/Equity: X.Xx",
+    "EPS: ₹XX",
+    "Dividend Yield: X.X%",
+    "52-Week High: ₹XXXX | Low: ₹XXXX",
+    "P/E: XXx vs Sector Avg: XXx"
   ],
-  "strengths": ["Strength 1", "Strength 2", "Strength 3"],
+  "strengths": ["Strength with specific data point", "Strength 2", "Strength 3"],
   "risks": ["Risk 1", "Risk 2", "Risk 3"],
-  "verdict_text": "One clear sentence explaining verdict referencing the current price ${sym}${live?.price || ''} and estimated fair value."
+  "verdict_text": "One sentence verdict with current price, fair value and upside mentioned."
 }`;
 
   try {
     const KEY = 'AIzaSyB3AER5sVIAm28idPgCLNPt_CpybCrqhTw';
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${KEY}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1000,temperature:0.3}})
-    });
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${KEY}`,
+      {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          contents: [{parts:[{text: prompt}]}],
+          generationConfig: {maxOutputTokens:1200, temperature:0.2}
+        })
+      }
+    );
     const data = await res.json();
-    let raw = data?.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    let raw = '';
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    for (const p of parts) { if (p.text) raw += p.text; }
     raw = raw.replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(raw);
-    // Inject live data into metrics directly
-    if (live) {
-      parsed.current_price = `${sym}${live.price}`;
-      parsed.pe_ratio = live.pe ? `${live.pe}x` : parsed.pe_ratio;
-      parsed.market_cap = capStr;
-      parsed.change_today = (live.change >= 0 ? '+' : '') + live.change + '%';
-    }
-    fillResult(parsed);
+    const start = raw.indexOf('{');
+    const end = raw.lastIndexOf('}');
+    if (start !== -1 && end !== -1) raw = raw.slice(start, end+1);
+    fillResult(JSON.parse(raw));
   } catch(e) {
     document.getElementById('rCompany').textContent = 'Analysis failed — please try again';
-    document.getElementById('rTicker').textContent = '';
+    document.getElementById('rTicker').textContent = 'Check your internet connection';
     rc.classList.add('show');
   }
   sk.classList.remove('show');
