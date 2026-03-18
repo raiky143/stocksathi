@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StockSathi — Automated Stock Valuation for Indian Markets</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%232563EB'/><polyline points='10,70 30,50 50,60 70,30 90,20' stroke='white' stroke-width='7' fill='none' stroke-linecap='round' stroke-linejoin='round'/><circle cx='90' cy='20' r='7' fill='%2334D399'/></svg>">
+<meta name="theme-color" content="#2563EB">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -187,7 +189,6 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
 <nav>
   <a class="nav-logo" href="#">StockSathi<span class="logo-dot">.</span><span class="logo-badge">INDIA</span></a>
   <ul class="nav-links">
-    <li><a href="#analyse">Analyse</a></li>
     <li><a href="#reports">Reports</a></li>
     <li><a href="#features">Features</a></li>
     <li><a href="#reports" class="nav-cta">↓ Free Reports</a></li>
@@ -195,26 +196,13 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
 </nav>
 
 <!-- HERO -->
-<section class="hero" id="analyse">
+<section class="hero" id="home">
   <div class="hero-badge"><span class="hero-badge-dot"></span>🇮🇳 Built for Indian Markets</div>
-  <h1>Automated Stock Valuation<br>for <span class="blu">Indian Investors</span></h1>
-  <p class="hero-sub">Search any NSE/BSE stock and get an instant AI-powered fundamental analysis — DCF, WACC, Multiples &amp; a clear Buy/Hold/Sell verdict.</p>
-
-  <div class="search-wrap">
-    <div class="search-bar">
-      <div class="s-icon">🔍</div>
-      <input class="s-input" id="stockInput" type="text" placeholder="Search stock... TCS, IRCON, Reliance, NVDA..." autocomplete="off" spellcheck="false" />
-      <button class="s-btn" id="analyseBtn" onclick="analyseStock()">Analyse →</button>
-    </div>
-  </div>
-  <div class="hints">
-    <span style="font-size:12px;color:var(--text3);">Try:</span>
-    <span class="chip" onclick="qs('TCS.NS')">TCS.NS</span>
-    <span class="chip" onclick="qs('RELIANCE.NS')">RELIANCE.NS</span>
-    <span class="chip" onclick="qs('IRCON International')">IRCON</span>
-    <span class="chip" onclick="qs('HDFC Bank')">HDFC Bank</span>
-    <span class="chip" onclick="qs('Waaree Energies')">Waaree</span>
-    <span class="chip" onclick="qs('NVDA')">NVDA</span>
+  <h1>Free Stock Valuation Reports<br>for <span class="blu">Indian Investors</span></h1>
+  <p class="hero-sub">Download professional 7-sheet Excel valuation models — DCF, WACC, Trading Multiples, P&amp;L, Balance Sheet &amp; a clear Buy/Hold/Sell verdict. 100% free.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <a href="#reports" style="background:var(--accent);color:#fff;font-size:14px;font-weight:600;padding:14px 32px;border-radius:var(--radius);text-decoration:none;transition:background .15s;" onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--accent)'">↓ Browse Free Reports</a>
+    <a href="#features" style="background:#fff;color:var(--text);font-size:14px;font-weight:600;padding:14px 32px;border-radius:var(--radius);text-decoration:none;border:1px solid var(--border);transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">Learn More →</a>
   </div>
 </section>
 
@@ -225,63 +213,6 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
   <div class="trust-item">📈 Trading Multiples</div>
   <div class="trust-item">💡 AI Analysis</div>
   <div class="trust-item">✅ 100% Free</div>
-</div>
-
-<!-- LIVE RESULT -->
-<div class="result-section" id="resultSection">
-  <!-- Skeleton -->
-  <div class="skeleton" id="skeleton">
-    <div class="skel-card">
-      <div class="skel-box" style="width:48px;height:48px;border-radius:10px;flex-shrink:0;"></div>
-      <div style="flex:1;">
-        <div class="skel-box" style="height:20px;width:220px;margin-bottom:8px;"></div>
-        <div class="skel-box" style="height:12px;width:130px;"></div>
-      </div>
-      <div class="skel-box" style="height:32px;width:80px;border-radius:20px;"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;">
-      <div style="padding:18px 24px;border-right:1px solid var(--border);"><div class="skel-box" style="height:22px;width:80px;margin-bottom:6px;"></div><div class="skel-box" style="height:10px;width:60px;"></div></div>
-      <div style="padding:18px 24px;border-right:1px solid var(--border);"><div class="skel-box" style="height:22px;width:80px;margin-bottom:6px;"></div><div class="skel-box" style="height:10px;width:60px;"></div></div>
-      <div style="padding:18px 24px;border-right:1px solid var(--border);"><div class="skel-box" style="height:22px;width:80px;margin-bottom:6px;"></div><div class="skel-box" style="height:10px;width:60px;"></div></div>
-      <div style="padding:18px 24px;"><div class="skel-box" style="height:22px;width:80px;margin-bottom:6px;"></div><div class="skel-box" style="height:10px;width:60px;"></div></div>
-    </div>
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-      <div class="skel-box" style="height:14px;width:100%;margin-bottom:10px;"></div>
-      <div class="skel-box" style="height:14px;width:85%;margin-bottom:10px;"></div>
-      <div class="skel-box" style="height:14px;width:70%;"></div>
-    </div>
-  </div>
-
-  <!-- Result Card -->
-  <div class="res-card" id="resCard">
-    <div class="res-header">
-      <div>
-        <div class="res-company" id="rCompany">—</div>
-        <div class="res-ticker" id="rTicker">—</div>
-      </div>
-      <div id="rVerdict" class="verdict-pill vp-buy">▲ BUY</div>
-    </div>
-    <div class="metrics">
-      <div class="metric"><div class="mv nt" id="m1">—</div><div class="ml">Live Price</div></div>
-      <div class="metric"><div class="mv" id="m2">—</div><div class="ml">Today's Change</div></div>
-      <div class="metric"><div class="mv" id="m3">—</div><div class="ml">P/E Ratio</div></div>
-      <div class="metric"><div class="mv" id="m4">—</div><div class="ml">Market Cap</div></div>
-    </div>
-    <div class="res-body">
-      <div class="rsec" id="sOverview" style="display:none;"><div class="rsec-title">Company Overview</div><p id="tOverview"></p></div>
-      <div class="rsec" id="sFinancials" style="display:none;"><div class="rsec-title">Key Financials</div><ul id="lFinancials"></ul></div>
-      <div class="rsec" id="sStrengths" style="display:none;"><div class="rsec-title">Strengths</div><ul id="lStrengths"></ul></div>
-      <div class="rsec" id="sRisks" style="display:none;"><div class="rsec-title">Key Risks</div><ul id="lRisks"></ul></div>
-      <div class="rsec" id="sVerdict" style="display:none;">
-        <div class="rsec-title">Analyst Verdict</div>
-        <div class="verdict-box" id="verdictBox">
-          <span style="font-size:22px;" id="vEmoji">✅</span>
-          <p id="tVerdict"></p>
-        </div>
-      </div>
-    </div>
-    <div class="disc">⚠️ AI-generated for educational purposes only. Not financial advice. Always do your own research before investing.</div>
-  </div>
 </div>
 
 <!-- STATS BAND -->
@@ -314,9 +245,9 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
     <h2 class="sec-title fi">Three simple steps</h2>
   </div>
   <div class="steps">
-    <div class="step fi"><div class="step-num">1</div><div class="step-title">Search any stock</div><div class="step-desc">Type a company name or ticker. Indian NSE/BSE or US stocks all supported.</div></div>
-    <div class="step fi d1"><div class="step-num">2</div><div class="step-title">Get instant AI analysis</div><div class="step-desc">Our AI analyst runs DCF, WACC, multiples and DDM — delivering a live report in seconds.</div></div>
-    <div class="step fi d2"><div class="step-num">3</div><div class="step-title">Download Excel report</div><div class="step-desc">For select stocks, download our full 7-sheet Excel model for deep-dive offline analysis.</div></div>
+    <div class="step fi"><div class="step-num">1</div><div class="step-title">Browse reports</div><div class="step-desc">Find any Indian stock report from our free library — filter by sector or search by name.</div></div>
+    <div class="step fi d1"><div class="step-num">2</div><div class="step-title">Download Excel</div><div class="step-desc">Get a full 7-sheet professional valuation model instantly — no login, no email required.</div></div>
+    <div class="step fi d2"><div class="step-num">3</div><div class="step-title">Make informed decisions</div><div class="step-desc">Use DCF, WACC, multiples and DDM analysis to decide confidently — Buy, Hold or Sell.</div></div>
   </div>
 </section>
 
@@ -437,168 +368,6 @@ function filterTag(tag) {
 
 renderRpts(rptData);
 
-/* LIVE ANALYSIS */
-function qs(q) { document.getElementById('stockInput').value=q; analyseStock(); }
-document.getElementById('stockInput').addEventListener('keydown',e=>{ if(e.key==='Enter') analyseStock(); });
-
-/* Fetch live stock data using multiple free APIs */
-async function fetchLiveData(query) { return null; }
-function fmtCap(mc, currency) { return null; }
-
-async function analyseStock() {
-  const query = document.getElementById('stockInput').value.trim();
-  if (!query) return;
-  const btn = document.getElementById('analyseBtn');
-  const rs = document.getElementById('resultSection');
-  const sk = document.getElementById('skeleton');
-  const rc = document.getElementById('resCard');
-
-  btn.disabled=true; btn.textContent='Analysing...';
-  rs.classList.add('show');
-  sk.classList.add('show');
-  rc.classList.remove('show');
-  rs.scrollIntoView({behavior:'smooth',block:'start'});
-
-  const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
-
-  const prompt = `You are StockSathi, a professional Indian stock market analyst. Today is ${today}.
-User searched: "${query}"
-
-Use your knowledge to give the most accurate and recent data available for this stock.
-Respond ONLY with valid JSON — no markdown, no code fences, start directly with {
-
-{
-  "company": "Full company name",
-  "ticker": "Exchange ticker e.g. TCS.NS",
-  "sector": "Sector name",
-  "current_price": "Recent price with ₹ or $ e.g. ₹3,842",
-  "change_today": "Recent % change e.g. +1.2% or -0.8%",
-  "market_cap": "e.g. ₹13,90,000 Cr",
-  "pe_ratio": "e.g. 28.4x",
-  "dcf_value": "Estimated intrinsic value e.g. ₹4,200",
-  "upside": "e.g. +9.3% or -5.1%",
-  "wacc": "e.g. 12.5%",
-  "verdict": "BUY or HOLD or SELL",
-  "overview": "2 sentences about what the company does and its market position.",
-  "financials": [
-    "Revenue FY24: ₹X,XXX Cr (Growth: +X%)",
-    "Net Profit: ₹X,XXX Cr (Margin: X%)",
-    "ROCE: X% | ROE: X%",
-    "Debt/Equity: X.Xx",
-    "EPS: ₹XX",
-    "Dividend Yield: X.X%",
-    "52-Week High: ₹XXXX | Low: ₹XXXX",
-    "P/E: XXx vs Sector Avg: XXx"
-  ],
-  "strengths": ["Strength with specific data point", "Strength 2", "Strength 3"],
-  "risks": ["Risk 1", "Risk 2", "Risk 3"],
-  "verdict_text": "One sentence verdict with current price, fair value and upside mentioned."
-}`;
-
-  try {
-    const KEY = 'AIzaSyDmPwueVaTQTCtOmDG5TPH_yuimpvqbZtU';
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': KEY
-        },
-        body: JSON.stringify({
-          contents: [{parts:[{text: prompt}]}],
-          generationConfig: {maxOutputTokens:1200, temperature:0.2}
-        })
-      }
-    );
-    const data = await res.json();
-    console.log('Gemini response:', JSON.stringify(data));
-
-    // Show API error if any
-    if (data.error) {
-      document.getElementById('rCompany').textContent = '⚠️ ' + data.error.message;
-      document.getElementById('rTicker').textContent = 'Status: ' + data.error.code + ' — ' + (data.error.status||'');
-      rc.classList.add('show');
-      sk.classList.remove('show');
-      btn.disabled=false; btn.textContent='Analyse →';
-      return;
-    }
-    if (!data.candidates?.length) {
-      document.getElementById('rCompany').textContent = '⚠️ No response from AI';
-      document.getElementById('rTicker').textContent = JSON.stringify(data).slice(0,120);
-      rc.classList.add('show');
-      sk.classList.remove('show');
-      btn.disabled=false; btn.textContent='Analyse →';
-      return;
-    }
-
-    let raw = '';
-    const parts = data?.candidates?.[0]?.content?.parts || [];
-    for (const p of parts) { if (p.text) raw += p.text; }
-    raw = raw.replace(/```json|```/g,'').trim();
-    const start = raw.indexOf('{');
-    const end = raw.lastIndexOf('}');
-    if (start !== -1 && end !== -1) raw = raw.slice(start, end+1);
-    fillResult(JSON.parse(raw));
-  } catch(e) {
-    document.getElementById('rCompany').textContent = 'Error: ' + e.message;
-    document.getElementById('rTicker').textContent = 'Please check API key restrictions in Google AI Studio';
-    rc.classList.add('show');
-  }
-  sk.classList.remove('show');
-  btn.disabled=false; btn.textContent='Analyse →';
-}
-
-function fillResult(d) {
-  document.getElementById('rCompany').textContent = d.company||'—';
-  document.getElementById('rTicker').textContent = (d.ticker||'') + (d.sector?' · '+d.sector:'');
-  const v = (d.verdict||'HOLD').toUpperCase();
-  const vEl = document.getElementById('rVerdict');
-  vEl.textContent = v==='BUY'?'▲ BUY':v==='SELL'?'▼ SELL':'◆ HOLD';
-  vEl.className = 'verdict-pill '+(v==='BUY'?'vp-buy':v==='SELL'?'vp-sell':'vp-hold');
-
-  // Metric 1: Live Price
-  const m1 = document.getElementById('m1');
-  m1.textContent = d.current_price || d.dcf_value || '—';
-  document.querySelector('#m1 + .ml') && (document.querySelector('#m1').nextElementSibling.textContent = d.current_price ? 'Live Price' : 'DCF Fair Value');
-
-  // Metric 2: Today's change or upside
-  const m2=document.getElementById('m2');
-  const changeVal = d.change_today || d.upside || '—';
-  m2.textContent = changeVal;
-  m2.className='mv '+((changeVal||'').startsWith('+') ? 'up' : (changeVal||'').startsWith('-') ? 'dn' : '');
-
-  // Metric 3: P/E
-  document.getElementById('m3').textContent = d.pe_ratio||'—';
-
-  // Metric 4: Market Cap or WACC
-  const m4 = document.getElementById('m4');
-  m4.textContent = d.market_cap || d.wacc || '—';
-  m4.nextElementSibling && (m4.nextElementSibling.textContent = d.market_cap ? 'Market Cap' : 'WACC');
-
-  setText('tOverview',d.overview,'sOverview');
-  setList('lFinancials',d.financials,'sFinancials');
-  setList('lStrengths',d.strengths,'sStrengths');
-  setList('lRisks',d.risks,'sRisks');
-  if(d.verdict_text){
-    document.getElementById('tVerdict').textContent=d.verdict_text;
-    const vb=document.getElementById('verdictBox');
-    vb.className='verdict-box'+(v==='SELL'?' sell-box':v==='HOLD'?' hold-box':'');
-    document.getElementById('vEmoji').textContent=v==='BUY'?'✅':v==='SELL'?'⚠️':'◆';
-    document.getElementById('sVerdict').style.display='block';
-  } else { document.getElementById('sVerdict').style.display='none'; }
-  document.getElementById('resCard').classList.add('show');
-}
-
-function setText(id,text,secId){
-  document.getElementById(id).textContent=text||'';
-  document.getElementById(secId).style.display=text?'block':'none';
-}
-function setList(id,items,secId){
-  const el=document.getElementById(id);
-  el.innerHTML=(items||[]).map(i=>`<li>${i}</li>`).join('');
-  document.getElementById(secId).style.display=(items?.length)?'block':'none';
-}
 
 /* SCROLL FADE */
 const obs = new IntersectionObserver(entries=>{
