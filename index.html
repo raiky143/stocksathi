@@ -496,12 +496,15 @@ Respond ONLY with valid JSON — no markdown, no code fences, start directly wit
 }`;
 
   try {
-    const KEY = 'AIzaSyB3AER5sVIAm28idPgCLNPt_CpybCrqhTw';
+    const KEY = 'AIzaSyDmPwueVaTQTCtOmDG5TPH_yuimpvqbZtU';
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`,
       {
         method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': KEY
+        },
         body: JSON.stringify({
           contents: [{parts:[{text: prompt}]}],
           generationConfig: {maxOutputTokens:1200, temperature:0.2}
@@ -509,6 +512,26 @@ Respond ONLY with valid JSON — no markdown, no code fences, start directly wit
       }
     );
     const data = await res.json();
+    console.log('Gemini response:', JSON.stringify(data));
+
+    // Show API error if any
+    if (data.error) {
+      document.getElementById('rCompany').textContent = '⚠️ ' + data.error.message;
+      document.getElementById('rTicker').textContent = 'Status: ' + data.error.code + ' — ' + (data.error.status||'');
+      rc.classList.add('show');
+      sk.classList.remove('show');
+      btn.disabled=false; btn.textContent='Analyse →';
+      return;
+    }
+    if (!data.candidates?.length) {
+      document.getElementById('rCompany').textContent = '⚠️ No response from AI';
+      document.getElementById('rTicker').textContent = JSON.stringify(data).slice(0,120);
+      rc.classList.add('show');
+      sk.classList.remove('show');
+      btn.disabled=false; btn.textContent='Analyse →';
+      return;
+    }
+
     let raw = '';
     const parts = data?.candidates?.[0]?.content?.parts || [];
     for (const p of parts) { if (p.text) raw += p.text; }
@@ -518,8 +541,8 @@ Respond ONLY with valid JSON — no markdown, no code fences, start directly wit
     if (start !== -1 && end !== -1) raw = raw.slice(start, end+1);
     fillResult(JSON.parse(raw));
   } catch(e) {
-    document.getElementById('rCompany').textContent = 'Analysis failed — please try again';
-    document.getElementById('rTicker').textContent = 'Check your internet connection';
+    document.getElementById('rCompany').textContent = 'Error: ' + e.message;
+    document.getElementById('rTicker').textContent = 'Please check API key restrictions in Google AI Studio';
     rc.classList.add('show');
   }
   sk.classList.remove('show');
