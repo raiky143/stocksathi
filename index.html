@@ -142,22 +142,38 @@ nav { position:sticky; top:0; background:rgba(255,255,255,0.96); backdrop-filter
 .fpill { background:#fff; border:1px solid var(--border); color:var(--text2); font-family:'Sora',sans-serif; font-size:12px; font-weight:600; padding:8px 16px; border-radius:20px; cursor:pointer; transition:all .15s; }
 .fpill:hover{border-color:var(--accent);color:var(--accent);}
 .fpill.on{background:var(--accent);border-color:var(--accent);color:#fff;}
-.rpt-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; }
-.rpt-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:20px; display:flex; flex-direction:column; box-shadow:var(--shadow); transition:box-shadow .2s,border-color .2s; }
-.rpt-card:hover{box-shadow:var(--shadow-md);border-color:var(--border2);}
-.rpt-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
-.rpt-ico { width:40px; height:40px; background:var(--bg2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+
+/* ACCORDION */
+.acc-wrap { display:flex; flex-direction:column; gap:10px; max-width:860px; margin:0 auto; }
+.acc-group { background:#fff; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); transition:box-shadow .2s; }
+.acc-group:hover { box-shadow:var(--shadow-md); }
+.acc-header { display:flex; align-items:center; justify-content:space-between; padding:18px 24px; cursor:pointer; user-select:none; gap:12px; }
+.acc-header:hover { background:var(--bg2); }
+.acc-left { display:flex; align-items:center; gap:14px; }
+.acc-sector-ico { font-size:20px; width:44px; height:44px; background:var(--accent-lt); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.acc-sector-name { font-size:15px; font-weight:700; color:var(--text); }
+.acc-sector-count { font-size:12px; color:var(--text3); margin-top:2px; }
+.acc-chevron { width:28px; height:28px; background:var(--bg2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; transition:transform .3s ease; color:var(--text2); flex-shrink:0; }
+.acc-group.open .acc-chevron { transform:rotate(180deg); }
+.acc-body { max-height:0; overflow:hidden; transition:max-height .4s ease; }
+.acc-group.open .acc-body { max-height:2000px; }
+.acc-list { border-top:1px solid var(--border); }
+.acc-row { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid var(--border); gap:12px; transition:background .15s; flex-wrap:wrap; }
+.acc-row:last-child { border-bottom:none; }
+.acc-row:hover { background:var(--bg2); }
+.acc-row-left { display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
+.acc-row-ico { font-size:16px; width:34px; height:34px; background:var(--bg3); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.acc-co { font-size:14px; font-weight:600; color:var(--text); }
+.acc-tk { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text3); margin-top:1px; }
+.acc-row-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
 .rv-pill { font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px; }
 .rv-buy{background:var(--green-lt);color:var(--green);}
 .rv-hold{background:var(--amber-lt);color:var(--amber);}
 .rv-sell{background:var(--red-lt);color:var(--red);}
-.rpt-co { font-size:15px; font-weight:700; margin-bottom:3px; }
-.rpt-tk { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text3); margin-bottom:8px; }
-.rpt-sec { font-size:11px; color:var(--text3); background:var(--bg2); display:inline-block; padding:2px 8px; border-radius:4px; margin-bottom:14px; }
-.rpt-meta { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
-.rpt-meta span { font-size:11px; color:var(--text3); }
-.rpt-dl { display:flex; align-items:center; justify-content:center; gap:7px; background:var(--accent); color:#fff; font-family:'Sora',sans-serif; font-size:12px; font-weight:600; padding:10px; border-radius:var(--radius); text-decoration:none; margin-top:auto; transition:background .15s; }
-.rpt-dl:hover{background:var(--accent2);}
+.acc-dl { display:inline-flex; align-items:center; gap:6px; background:var(--accent); color:#fff; font-family:'Sora',sans-serif; font-size:11px; font-weight:600; padding:7px 14px; border-radius:6px; text-decoration:none; transition:background .15s; white-space:nowrap; }
+.acc-dl:hover{background:var(--accent2);}
+.acc-meta { font-size:11px; color:var(--text3); }
+@media(max-width:500px){.acc-meta{display:none;}.acc-row{gap:8px;}}
 
 /* FOOTER */
 footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 28px; }
@@ -218,13 +234,7 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
   <a href="https://t.me/stocksathi" target="_blank" rel="noopener" class="trust-item" style="text-decoration:none;color:#229ED9;font-weight:700;">✈️ Join Telegram</a>
 </div>
 
-<!-- STATS BAND -->
-<div class="stats-band fi">
-  <div class="stat-item"><div class="stat-num">18+</div><div class="stat-lbl">Free Excel Reports</div></div>
-  <div class="stat-item"><div class="stat-num">7</div><div class="stat-lbl">Sheets per Report</div></div>
-  <div class="stat-item"><div class="stat-num">5</div><div class="stat-lbl">Valuation Methods</div></div>
-  <div class="stat-item"><div class="stat-num">∞</div><div class="stat-lbl">Stocks Analysable</div></div>
-</div>
+
 
 <!-- FEATURES -->
 <section class="features" id="features">
@@ -269,9 +279,9 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
     <button class="fpill" data-tag="energy" onclick="filterTag('energy')">Energy</button>
     <button class="fpill" data-tag="logistics" onclick="filterTag('logistics')">Logistics</button>
   </div>
-  <div class="rpt-grid" id="rptGrid"></div>
+  <div class="acc-wrap" id="accWrap"></div>
   <div id="noRpts" style="display:none;text-align:center;padding:48px;color:var(--text3);font-size:14px;">No reports found.</div>
-  <p id="rptCount" style="text-align:center;margin-top:24px;font-size:12px;color:var(--text3);">9 reports available · More coming soon</p>
+  <p id="rptCount" style="text-align:center;margin-top:24px;font-size:12px;color:var(--text3);"></p>
 </section>
 
 <!-- FOOTER -->
@@ -293,10 +303,9 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
     <div>
       <div class="ft-col-title">Reports</div>
       <ul class="ft-links">
-        <li><a href="#reports">ICICI Bank</a></li>
-        <li><a href="#reports">HDFC Bank</a></li>
-        <li><a href="#reports">Sun Pharma</a></li>
+        <li><a href="#reports">IRCON</a></li>
         <li><a href="#reports">TCS</a></li>
+        <li><a href="#reports">Waaree Energies</a></li>
         <li><a href="#reports">View all →</a></li>
       </ul>
     </div>
@@ -317,58 +326,102 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
 </footer>
 
 <script>
-/* REPORTS */
 const rptData = [
-  {co:'IRCON International',tk:'IRCON.NS',file:'IRCON_Valuation_StockSathi.xlsx',sec:'Infrastructure',tag:'infra',ico:'🚆',v:'buy'},
-  {co:'IRFC',tk:'IRFC.NS',file:'IRFC_Valuation_StockSathi.xlsx',sec:'Finance / Infra',tag:'infra',ico:'🏗️',v:'hold'},
-  {co:'TCS',tk:'TCS.NS',file:'TCS_Valuation_StockSathi.xlsx',sec:'IT Services',tag:'tech',ico:'💻',v:'buy'},
-  {co:'Bandhan Bank',tk:'BANDHANBNK.NS',file:'BandhanBank_Valuation_StockSathi.xlsx',sec:'Banking',tag:'banking',ico:'🏦',v:'hold'},
-  {co:'JustDial',tk:'JUSTDIAL.NS',file:'JustDial_Valuation_StockSathi.xlsx',sec:'Internet / Tech',tag:'tech',ico:'📱',v:'buy'},
-  {co:'Piramal Pharma',tk:'PPLPHARMA.NS',file:'PiramalPharma_Valuation_StockSathi.xlsx',sec:'Pharmaceuticals',tag:'pharma',ico:'💊',v:'hold'},
-  {co:'Syngene International',tk:'SYNGENE.NS',file:'Syngene_Valuation_StockSathi.xlsx',sec:'Pharma / Biotech',tag:'pharma',ico:'🧬',v:'buy'},
-  {co:'TCI Express',tk:'TCIEXP.NS',file:'TCIExpress_Valuation_StockSathi.xlsx',sec:'Logistics',tag:'logistics',ico:'🚚',v:'buy'},
-  {co:'Waaree Energies',tk:'WAAREEENER.NS',file:'WaareeEnergies_Valuation_StockSathi.xlsx',sec:'Renewable Energy',tag:'energy',ico:'☀️',v:'buy'},
-  {co:'Torrent Pharma',tk:'TORNTPHARM.NS',file:'TORRENT PHARMA_Valuation_StockSathi.xlsx',sec:'Pharmaceuticals',tag:'pharma',ico:'💊',v:'buy'},
-  {co:'Sun Pharma',tk:'SUNPHARMA.NS',file:'SUN PHARMA_Valuation_StockSathi.xlsx',sec:'Pharmaceuticals',tag:'pharma',ico:'🌞',v:'buy'},
-  {co:'Cipla',tk:'CIPLA.NS',file:'CIPLA_Valuation_StockSathi.xlsx',sec:'Pharmaceuticals',tag:'pharma',ico:'🧪',v:'buy'},
-  {co:'FirstCry',tk:'BRAINBEES.NS',file:'FIRSTCRY_Valuation_StockSathi.xlsx',sec:'E-Commerce / Retail',tag:'tech',ico:'🛒',v:'hold'},
-  {co:'ICICI Bank',tk:'ICICIBANK.NS',file:'ICICI_Bank_Valuation_StockSathi.xlsx',sec:'Banking',tag:'banking',ico:'🏦',v:'buy'},
-  {co:'HDFC Bank',tk:'HDFCBANK.NS',file:'HDFC_Bank_Valuation_StockSathi_v2.xlsx',sec:'Banking',tag:'banking',ico:'🏛️',v:'buy'},
-  {co:'PFC',tk:'PFC.NS',file:'PFC_Valuation_StockSathi_Pro.xlsx',sec:'Finance / Energy',tag:'energy',ico:'⚡',v:'buy'},
-  {co:'Amara Raja Energy',tk:'AMARAJABAT.NS',file:'AmaraRaja_Valuation_StockSathi.xlsx',sec:'Auto / Energy',tag:'energy',ico:'🔋',v:'buy'},
-  {co:'RVNL',tk:'RVNL.NS',file:'RVNL_Valuation_StockSathi.xlsx',sec:'Infrastructure',tag:'infra',ico:'🛤️',v:'buy'},
+  {co:'IRCON International',  tk:'IRCON.NS',      file:'IRCON_Valuation_StockSathi.xlsx',               sec:'Infrastructure',    tag:'infra',    ico:'🚆', v:'buy'},
+  {co:'IRFC',                 tk:'IRFC.NS',       file:'IRFC_Valuation_StockSathi.xlsx',                sec:'Infrastructure',    tag:'infra',    ico:'🏗️', v:'hold'},
+  {co:'RVNL',                 tk:'RVNL.NS',       file:'RVNL_Valuation_StockSathi.xlsx',                sec:'Infrastructure',    tag:'infra',    ico:'🛤️', v:'buy'},
+  {co:'TCI Express',          tk:'TCIEXP.NS',     file:'TCIExpress_Valuation_StockSathi.xlsx',          sec:'Logistics',         tag:'logistics',ico:'🚚', v:'buy'},
+  {co:'TCS',                  tk:'TCS.NS',        file:'TCS_Valuation_StockSathi.xlsx',                 sec:'Technology',        tag:'tech',     ico:'💻', v:'buy'},
+  {co:'JustDial',             tk:'JUSTDIAL.NS',   file:'JustDial_Valuation_StockSathi.xlsx',            sec:'Technology',        tag:'tech',     ico:'📱', v:'buy'},
+  {co:'FirstCry',             tk:'BRAINBEES.NS',  file:'FIRSTCRY_Valuation_StockSathi.xlsx',            sec:'Technology',        tag:'tech',     ico:'🛒', v:'hold'},
+  {co:'ICICI Bank',           tk:'ICICIBANK.NS',  file:'ICICI_Bank_Valuation_StockSathi.xlsx',          sec:'Banking',           tag:'banking',  ico:'🏦', v:'buy'},
+  {co:'HDFC Bank',            tk:'HDFCBANK.NS',   file:'HDFC_Bank_Valuation_StockSathi_v2.xlsx',        sec:'Banking',           tag:'banking',  ico:'🏛️', v:'buy'},
+  {co:'Bandhan Bank',         tk:'BANDHANBNK.NS', file:'BandhanBank_Valuation_StockSathi.xlsx',         sec:'Banking',           tag:'banking',  ico:'🏦', v:'hold'},
+  {co:'Torrent Pharma',       tk:'TORNTPHARM.NS', file:'TORRENT PHARMA_Valuation_StockSathi.xlsx',      sec:'Pharmaceuticals',   tag:'pharma',   ico:'💊', v:'buy'},
+  {co:'Sun Pharma',           tk:'SUNPHARMA.NS',  file:'SUN PHARMA_Valuation_StockSathi.xlsx',          sec:'Pharmaceuticals',   tag:'pharma',   ico:'🌞', v:'buy'},
+  {co:'Cipla',                tk:'CIPLA.NS',      file:'CIPLA_Valuation_StockSathi.xlsx',               sec:'Pharmaceuticals',   tag:'pharma',   ico:'🧪', v:'buy'},
+  {co:'Piramal Pharma',       tk:'PPLPHARMA.NS',  file:'PiramalPharma_Valuation_StockSathi.xlsx',       sec:'Pharmaceuticals',   tag:'pharma',   ico:'💊', v:'hold'},
+  {co:'Syngene International',tk:'SYNGENE.NS',    file:'Syngene_Valuation_StockSathi.xlsx',             sec:'Pharmaceuticals',   tag:'pharma',   ico:'🧬', v:'buy'},
+  {co:'Waaree Energies',      tk:'WAAREEENER.NS', file:'WaareeEnergies_Valuation_StockSathi.xlsx',      sec:'Energy',            tag:'energy',   ico:'☀️', v:'buy'},
+  {co:'PFC',                  tk:'PFC.NS',        file:'PFC_Valuation_StockSathi_Pro.xlsx',             sec:'Energy',            tag:'energy',   ico:'⚡', v:'buy'},
+  {co:'Amara Raja Energy',    tk:'AMARAJABAT.NS', file:'AmaraRaja_Valuation_StockSathi.xlsx',           sec:'Energy',            tag:'energy',   ico:'🔋', v:'buy'},
 ];
-let activeTag = 'all';
 
-function renderRpts(list) {
-  const g = document.getElementById('rptGrid');
-  const n = document.getElementById('noRpts');
-  const c = document.getElementById('rptCount');
-  if (!list.length) { g.innerHTML=''; n.style.display='block'; return; }
-  n.style.display = 'none';
-  c.textContent = `${list.length} report${list.length!==1?'s':''} available · More coming soon`;
-  g.innerHTML = list.map(r=>`
-    <div class="rpt-card">
-      <div class="rpt-top">
-        <div class="rpt-ico">${r.ico}</div>
-        <span class="rv-pill rv-${r.v}">${r.v.toUpperCase()}</span>
+const sectorMeta = {
+  'Infrastructure':  {ico:'🏗️', order:1},
+  'Logistics':       {ico:'🚚', order:2},
+  'Technology':      {ico:'💻', order:3},
+  'Banking':         {ico:'🏦', order:4},
+  'Pharmaceuticals': {ico:'💊', order:5},
+  'Energy':          {ico:'⚡', order:6},
+};
+
+let activeTag = 'all';
+let openGroups = new Set();
+
+function renderAccordion(list) {
+  const wrap = document.getElementById('accWrap');
+  const noRpts = document.getElementById('noRpts');
+  const cnt = document.getElementById('rptCount');
+  if (!list.length) { wrap.innerHTML=''; noRpts.style.display='block'; cnt.textContent=''; return; }
+  noRpts.style.display = 'none';
+  cnt.textContent = `${list.length} report${list.length!==1?'s':''} available · More coming soon`;
+
+  const groups = {};
+  list.forEach(r => { if(!groups[r.sec]) groups[r.sec]=[]; groups[r.sec].push(r); });
+  const sorted = Object.keys(groups).sort((a,b)=>(sectorMeta[a]?.order||99)-(sectorMeta[b]?.order||99));
+  const q = (document.getElementById('libSearch').value||'').trim();
+  const forceOpen = q.length > 0 || activeTag !== 'all';
+
+  wrap.innerHTML = sorted.map(sec => {
+    const stocks = groups[sec];
+    const meta = sectorMeta[sec] || {ico:'📄'};
+    const isOpen = forceOpen || openGroups.has(sec);
+    return `
+    <div class="acc-group${isOpen?' open':''}" data-sec="${sec}">
+      <div class="acc-header" onclick="toggleGroup(this)">
+        <div class="acc-left">
+          <div class="acc-sector-ico">${meta.ico}</div>
+          <div>
+            <div class="acc-sector-name">${sec}</div>
+            <div class="acc-sector-count">${stocks.length} report${stocks.length>1?'s':''}</div>
+          </div>
+        </div>
+        <div class="acc-chevron">▾</div>
       </div>
-      <div class="rpt-co">${r.co}</div>
-      <div class="rpt-tk">${r.tk}</div>
-      <span class="rpt-sec">${r.sec}</span>
-      <div class="rpt-meta">
-        <span>📄 7 Sheets</span>
-        <span>📅 Mar 2026</span>
-        <span>✅ Free</span>
+      <div class="acc-body">
+        <div class="acc-list">
+          ${stocks.map(r=>`
+          <div class="acc-row">
+            <div class="acc-row-left">
+              <div class="acc-row-ico">${r.ico}</div>
+              <div>
+                <div class="acc-co">${r.co}</div>
+                <div class="acc-tk">${r.tk}</div>
+              </div>
+            </div>
+            <div class="acc-row-right">
+              <span class="acc-meta">📄 7 Sheets &nbsp;|&nbsp; 📅 Mar 2026</span>
+              <span class="rv-pill rv-${r.v}">${r.v.toUpperCase()}</span>
+              <a href="${r.file}" download class="acc-dl">↓ Download</a>
+            </div>
+          </div>`).join('')}
+        </div>
       </div>
-      <a href="${r.file}" download class="rpt-dl">↓ Download Excel Report</a>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
+}
+
+function toggleGroup(header) {
+  const group = header.closest('.acc-group');
+  const sec = group.dataset.sec;
+  const isOpen = group.classList.toggle('open');
+  if (isOpen) openGroups.add(sec); else openGroups.delete(sec);
 }
 
 function filterRpts() {
   const q = (document.getElementById('libSearch').value||'').toLowerCase();
-  renderRpts(rptData.filter(r=>{
+  renderAccordion(rptData.filter(r=>{
     const tagOk = activeTag==='all'||r.tag===activeTag;
     const qOk = !q||r.co.toLowerCase().includes(q)||r.tk.toLowerCase().includes(q)||r.sec.toLowerCase().includes(q);
     return tagOk&&qOk;
@@ -381,8 +434,7 @@ function filterTag(tag) {
   filterRpts();
 }
 
-renderRpts(rptData);
-
+renderAccordion(rptData);
 
 /* SCROLL FADE */
 const obs = new IntersectionObserver(entries=>{
