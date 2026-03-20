@@ -220,7 +220,7 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
 
 <!-- STATS BAND -->
 <div class="stats-band fi">
-  <div class="stat-item"><div class="stat-num">9+</div><div class="stat-lbl">Free Excel Reports</div></div>
+  <div class="stat-item"><div class="stat-num">18+</div><div class="stat-lbl">Free Excel Reports</div></div>
   <div class="stat-item"><div class="stat-num">7</div><div class="stat-lbl">Sheets per Report</div></div>
   <div class="stat-item"><div class="stat-num">5</div><div class="stat-lbl">Valuation Methods</div></div>
   <div class="stat-item"><div class="stat-num">∞</div><div class="stat-lbl">Stocks Analysable</div></div>
@@ -267,6 +267,7 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
     <button class="fpill" data-tag="banking" onclick="filterTag('banking')">Banking</button>
     <button class="fpill" data-tag="pharma" onclick="filterTag('pharma')">Pharma</button>
     <button class="fpill" data-tag="energy" onclick="filterTag('energy')">Energy</button>
+    <button class="fpill" data-tag="logistics" onclick="filterTag('logistics')">Logistics</button>
   </div>
   <div class="rpt-grid" id="rptGrid"></div>
   <div id="noRpts" style="display:none;text-align:center;padding:48px;color:var(--text3);font-size:14px;">No reports found.</div>
@@ -292,9 +293,10 @@ footer { background:var(--text); color:rgba(255,255,255,.65); padding:56px 5vw 2
     <div>
       <div class="ft-col-title">Reports</div>
       <ul class="ft-links">
-        <li><a href="#reports">IRCON</a></li>
+        <li><a href="#reports">ICICI Bank</a></li>
+        <li><a href="#reports">HDFC Bank</a></li>
+        <li><a href="#reports">Sun Pharma</a></li>
         <li><a href="#reports">TCS</a></li>
-        <li><a href="#reports">Waaree Energies</a></li>
         <li><a href="#reports">View all →</a></li>
       </ul>
     </div>
@@ -324,8 +326,17 @@ const rptData = [
   {co:'JustDial',tk:'JUSTDIAL.NS',file:'JustDial_Valuation_StockSathi.xlsx',sec:'Internet / Tech',tag:'tech',ico:'📱',v:'buy'},
   {co:'Piramal Pharma',tk:'PPLPHARMA.NS',file:'PiramalPharma_Valuation_StockSathi.xlsx',sec:'Pharmaceuticals',tag:'pharma',ico:'💊',v:'hold'},
   {co:'Syngene International',tk:'SYNGENE.NS',file:'Syngene_Valuation_StockSathi.xlsx',sec:'Pharma / Biotech',tag:'pharma',ico:'🧬',v:'buy'},
-  {co:'TCI Express',tk:'TCIEXP.NS',file:'TCIExpress_Valuation_StockSathi.xlsx',sec:'Logistics',tag:'infra',ico:'🚚',v:'buy'},
+  {co:'TCI Express',tk:'TCIEXP.NS',file:'TCIExpress_Valuation_StockSathi.xlsx',sec:'Logistics',tag:'logistics',ico:'🚚',v:'buy'},
   {co:'Waaree Energies',tk:'WAAREEENER.NS',file:'WaareeEnergies_Valuation_StockSathi.xlsx',sec:'Renewable Energy',tag:'energy',ico:'☀️',v:'buy'},
+  {co:'Torrent Pharma',tk:'TORNTPHARM.NS',file:'TORRENT PHARMA_Valuation_StockSathi.xlsx',sec:'Pharmaceuticals',tag:'pharma',ico:'💊',v:'buy'},
+  {co:'Sun Pharma',tk:'SUNPHARMA.NS',file:'SUN PHARMA_Valuation_StockSathi.xlsx',sec:'Pharmaceuticals',tag:'pharma',ico:'🌞',v:'buy'},
+  {co:'Cipla',tk:'CIPLA.NS',file:'CIPLA_Valuation_StockSathi.xlsx',sec:'Pharmaceuticals',tag:'pharma',ico:'🧪',v:'buy'},
+  {co:'FirstCry',tk:'BRAINBEES.NS',file:'FIRSTCRY_Valuation_StockSathi.xlsx',sec:'E-Commerce / Retail',tag:'tech',ico:'🛒',v:'hold'},
+  {co:'ICICI Bank',tk:'ICICIBANK.NS',file:'ICICI_Bank_Valuation_StockSathi.xlsx',sec:'Banking',tag:'banking',ico:'🏦',v:'buy'},
+  {co:'HDFC Bank',tk:'HDFCBANK.NS',file:'HDFC_Bank_Valuation_StockSathi_v2.xlsx',sec:'Banking',tag:'banking',ico:'🏛️',v:'buy'},
+  {co:'PFC',tk:'PFC.NS',file:'PFC_Valuation_StockSathi_Pro.xlsx',sec:'Finance / Energy',tag:'energy',ico:'⚡',v:'buy'},
+  {co:'Amara Raja Energy',tk:'AMARAJABAT.NS',file:'AmaraRaja_Valuation_StockSathi.xlsx',sec:'Auto / Energy',tag:'energy',ico:'🔋',v:'buy'},
+  {co:'RVNL',tk:'RVNL.NS',file:'RVNL_Valuation_StockSathi.xlsx',sec:'Infrastructure',tag:'infra',ico:'🛤️',v:'buy'},
 ];
 let activeTag = 'all';
 
